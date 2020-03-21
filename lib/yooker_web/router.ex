@@ -17,6 +17,8 @@ defmodule YookerWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/game", GameController, :index
+    get "/game/:player_id", GameController, :show
   end
 
   # Other scopes may use custom stacks.
