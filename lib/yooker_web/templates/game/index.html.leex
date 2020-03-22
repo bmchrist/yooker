@@ -50,8 +50,8 @@
 
 <%= if @state.current_round == :trump_select_round_two do %>
   <button phx-click="choose-trump" phx-value-suit="♠">♠</button>
-  <button phx-click="choose-trump" phx-value-suit="♦">♦</button>
-  <button phx-click="choose-trump" phx-value-suit="♣">♣</button>
+  <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♦">♦</button>
+  <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♣">♣</button>
   <button phx-click="choose-trump" phx-value-suit="♥">♥</button>
 <% end %>
 
