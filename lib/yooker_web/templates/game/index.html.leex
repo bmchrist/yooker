@@ -58,6 +58,7 @@
 <br/>
 
 <span>Game Actions:</span>
+  <button phx-click="deal">Deal</button>
 <%= if @state.current_round == :deal do %>
   <button phx-click="deal">Deal</button>
 <% else %>

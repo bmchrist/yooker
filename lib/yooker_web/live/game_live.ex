@@ -25,7 +25,7 @@ defmodule YookerWeb.GameLive do
 
   def handle_event("pass-trump", _event, %{assigns: assigns} = socket) do # todo - why do we do the assigns = socket thing
     # todo -- handle not passing forever
-    new_state = State.advance_turn(assigns.state)
+    new_state = State.advance_trump_selection(assigns.state)
     {:noreply, assign(socket, state: new_state)}
   end
 end
