@@ -81,18 +81,25 @@ defmodule Yooker.State do
   end
 
   def choose_trump(%State{deck: deck, current_round: current_round} = state, suit) do
-    if current_round == :trump_select_round_two do
-      if suit == nil do
+    suit = if current_round == :trump_select_round_two do
+      if suit == "" do
         Logger.error("No suit selected when suit selection needed")
       end
+      suit
     else # Round One -- use top card
-      if suit != nil do
+      if suit != "" do
         Logger.error("Suit selected when incorrect round")
       end
 
-      suit = String.last(List.first(deck))
+      String.last(List.first(deck))
     end
 
     %{state | trump: suit, current_round: :playing}
+  end
+
+  # TODO - add tests..
+  def can_pass?(%State{current_round: current_round, dealer: dealer, current_turn: current_turn}) do
+    current_round == :trump_select_round_one or
+      (current_round == :trump_select_round_two and !(current_turn == dealer))
   end
 end

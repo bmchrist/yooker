@@ -33,18 +33,15 @@
 
 <br/>
 
-<!-- todo after fourth pass - choose any trump -->
 <span>Selecting Trump:</span>
-<%= if @state.current_round == :trump_select_round_one or @state.current_round == :trump_select_round_two do %>
+<%= if Yooker.State.can_pass?(@state) do %>
   <button phx-click="pass-trump">Pass</button>
 <% else %>
   <button disabled="disabled">Pass</button>
 <% end %>
 
 <%= if @state.current_round == :trump_select_round_one do %>
-  <button phx-click="choose-trump" phx-value-suit="" class="a">👆</button>
-<% else %>
-  <button disabled="disabled">👆</button>
+  <button phx-click="choose-trump" phx-value-suit="">👆</button>
 <% end %>
 
 <%= if @state.current_round == :trump_select_round_two do %>
@@ -52,16 +49,10 @@
   <button phx-click="choose-trump" phx-value-suit="♦">♦</button>
   <button phx-click="choose-trump" phx-value-suit="♣">♣</button>
   <button phx-click="choose-trump" phx-value-suit="♥">♥</button>
-<% else %>
-  <button disabled="disabled">♠</button>
-  <button disabled="disabled">♦</button>
-  <button disabled="disabled">♣</button>
-  <button disabled="disabled">♥</button>
 <% end %>
 
 <br/>
 
-<!-- TODO(bmchrist) only show deal if relevant - deck not dealt yet -->
 <span>Game Actions:</span>
 <%= if @state.current_round == :deal do %>
   <button phx-click="deal">Deal</button>
