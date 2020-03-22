@@ -1,5 +1,16 @@
+<h2>Deck</h2>
 <div class="deck">
   <%= for card <- @state.deck do %>
     <span class="card"><%= card %></span>
   <% end %>
 </div>
+
+<%= for {player, hand} <- @state.player_hands do %>
+  <h2>Player <%= player %></h2>
+  <%= for card <- hand do %>
+    <span class="card"><%= card %></span>
+  <% end %>
+<% end %>
+
+
+<button phx-click="deal">Deal</button>

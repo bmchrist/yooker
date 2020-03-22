@@ -5,13 +5,24 @@ defmodule Yooker.State do
 
   ## Attributes
   """
+  require Logger
 
   alias Yooker.State
 
-  defstruct deck: [1,2,3,4,5,10],
-    player_hands: {}, # needs to be private..? or are these already by default?
-    testing: 2,
+  defstruct deck: ["9", "10", "J", "Q", "K", "A", "9", "10", "J", "Q", "K", "A","9", "10", "J", "Q", "K", "A" ],
+    player_hands: %{ a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
     current_turn: nil, # rename to better indicate it will reference a player
     table: {} # could get replaced by a "selected card per player" concept..?
 
+  def deal(%State{deck: deck, current_turn: current_turn, table: table, player_hands: player_hands} = state) do # TODO do I need the state's whole def..? - perhaps only variables I need?
+    Logger.info("deal")
+    player_hands = %{
+      a: ["9"],
+      b: ["J"],
+      c: ["A"],
+      d: ["K"]
+    }
+
+    %{state | player_hands: player_hands}
+  end
 end
