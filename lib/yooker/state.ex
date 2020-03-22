@@ -8,9 +8,9 @@ defmodule Yooker.State do
 
   alias Yooker.State
 
-  defstruct deck: [],
+  defstruct deck: [1,2,3,4,5,10],
     player_hands: {}, # needs to be private..? or are these already by default?
     current_turn: nil, # rename to better indicate it will reference a player
-    table: {}, # could get replaced by a "selected card per player" concept..?
+    table: {} # could get replaced by a "selected card per player" concept..?
 
 end
