@@ -8,13 +8,12 @@ defmodule YookerWeb.GameLive do
     YookerWeb.GameView.render("index.html", assigns)
   end
 
-  def mount(_session, params, socket) do
+  def mount(_session, _params, socket) do # most guides don't list needing /3 (params) but does nto get called otherwise - look into this
     # TODO(bmchrist) figure out why we need to manually define the default layout)
     {:ok, assign(socket, layout: {YookerWeb.LayoutView, "app.html"}, state: %Yooker.State{})}
   end
 
   def handle_event("deal", _event, %{assigns: assigns} = socket) do # todo - why do we do the assigns = socket thing
-    Logger.info("deal")
     new_state = State.deal(assigns.state)
     {:noreply, assign(socket, state: new_state)}
   end
