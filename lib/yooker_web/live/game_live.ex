@@ -1,6 +1,7 @@
 defmodule YookerWeb.GameLive do
   use Phoenix.LiveView
   alias Yooker.State
+  require Logger
 
   def render(assigns) do
     YookerWeb.GameView.render("index.html", assigns)
@@ -16,8 +17,9 @@ defmodule YookerWeb.GameLive do
     {:noreply, assign(socket, state: new_state)}
   end
 
-  def handle_event("choose-trump", _event, %{assigns: assigns} = socket) do # todo - why do we do the assigns = socket thing
-    new_state = State.choose_trump(assigns.state)
+  def handle_event("choose-trump", %{"suit" => suit}, %{assigns: assigns} = socket) do # todo - why do we do the assigns = socket thing
+    Logger.info(suit)
+    new_state = State.choose_trump(assigns.state, suit)
     {:noreply, assign(socket, state: new_state)}
   end
 

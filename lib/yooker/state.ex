@@ -17,8 +17,14 @@ defmodule Yooker.State do
     ],
     player_hands: %{ a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
     trump: nil,
-    current_turn: :a, # rename to better indicate it will reference a player
+    current_turn: :b, # rename to better indicate it will reference a player
+    dealer: :a, # TODO(bmchrist) randomize later
+    current_round: :deal, # todo - better name - TODO - can you add validators?
     _table: {} # could get replaced by a "selected card per player" concept..?
+
+
+  # TODO(bmchrist) how would I make a convenience such as getting the top card of the deck..)
+  # TODO: make it's something like State.top_card(state) that just returns a card..?
 
   # Assumes a full deck of cards. Currently errors if attempted with less than 20 cards left in deck
   # Also not dealing according to proper euchre rules..
@@ -41,22 +47,52 @@ defmodule Yooker.State do
     {player_hand, hands} = List.pop_at(hands, 0)
     player_hands = %{player_hands | d: player_hand}
 
-    {deck, _remain} = List.pop_at(hands, 0)
-    %{state | player_hands: player_hands, deck: deck}
+    {deck, _remaining} = List.pop_at(hands, 0)
+    %{state | player_hands: player_hands, deck: deck, current_round: :trump_select_round_one}
   end
 
-  def advance_turn(%State{current_turn: current_turn} = state) do
-    %{state | current_turn:
-      case current_turn do
-        :a -> :b
-        :b -> :c
-        :c -> :d
-        :d -> :a
+  # TODO(bmchrist) Only relevant if we're still setting up the round - need new logic once we start playing
+  # # Handle "stick the dealer" vs continuing to pass
+  def advance_turn(%State{current_turn: current_turn, current_round: current_round, dealer: dealer} = state) do
+    # if we're in trump selection rnd 1
+    # starts left of dealer
+    # if not dealer passing, just advance
+    # else if dealer passing, advance round
+    new_turn = case current_turn do
+      :a -> :b
+      :b -> :c
+      :c -> :d
+      :d -> :a
+    end
+
+    # If the dealer just advanced the turn
+    new_round = if current_turn == dealer do
+      if current_round == :trump_select_round_one do
+        :trump_select_round_two
+      else
+        Logger.error("Invalid round advancement")
+        :error_round
       end
-    }
+    else
+      current_round
+    end
+
+    %{state | current_turn: new_turn, current_round: new_round}
   end
 
-  def choose_trump(%State{deck: deck} = state) do
-    %{state | trump: String.last(List.first(deck))}
+  def choose_trump(%State{deck: deck, current_round: current_round} = state, suit) do
+    if current_round == :trump_select_round_two do
+      if suit == nil do
+        Logger.error("No suit selected when suit selection needed")
+      end
+    else # Round One -- use top card
+      if suit != nil do
+        Logger.error("Suit selected when incorrect round")
+      end
+
+      suit = String.last(List.first(deck))
+    end
+
+    %{state | trump: suit, current_round: :playing}
   end
 end

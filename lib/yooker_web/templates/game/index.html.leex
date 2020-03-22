@@ -5,15 +5,27 @@
   <% end %>
 </div>
 
+<h2>Current Round <%= @state.current_round %></h2>
+
 <h2>Top Card</h2>
 <span class="card"><%= List.first(@state.deck) %></span> <!-- TODO(bmchrist) abstract first card logic for this and selecting trump-->
+<span>
+  <%= if @state.current_round != :trump_select_round_one do %>
+    HIDDEN
+  <% end %>
+</span>
 
 <h2>Trump: <%= @state.trump %></h2>
 
 <h2>Current Turn: <%= @state.current_turn %></h2>
 
 <%= for {player, hand} <- @state.player_hands do %>
-  <h2>Player <%= player %></h2>
+  <h2>
+    Player <%= player %>
+    <%= if @state.dealer == player do %>
+      Dealer
+    <% end %>
+  </h2>
   <%= for card <- hand do %>
     <span class="card"><%= card %></span>
   <% end %>
@@ -23,11 +35,36 @@
 
 <!-- todo after fourth pass - choose any trump -->
 <span>Selecting Trump:</span>
-<!-- use state rather than phx-value here so client side can't screw with things.. -->
-<button phx-click="choose-trump">👆</button>
-<button phx-click="pass-trump">Pass</button>
+<%= if @state.current_round == :trump_select_round_one or @state.current_round == :trump_select_round_two do %>
+  <button phx-click="pass-trump">Pass</button>
+<% else %>
+  <button disabled="disabled">Pass</button>
+<% end %>
+
+<%= if @state.current_round == :trump_select_round_one do %>
+  <button phx-click="choose-trump" phx-value-suit="" class="a">👆</button>
+<% else %>
+  <button disabled="disabled">👆</button>
+<% end %>
+
+<%= if @state.current_round == :trump_select_round_two do %>
+  <button phx-click="choose-trump" phx-value-suit="♠">♠</button>
+  <button phx-click="choose-trump" phx-value-suit="♦">♦</button>
+  <button phx-click="choose-trump" phx-value-suit="♣">♣</button>
+  <button phx-click="choose-trump" phx-value-suit="♥">♥</button>
+<% else %>
+  <button disabled="disabled">♠</button>
+  <button disabled="disabled">♦</button>
+  <button disabled="disabled">♣</button>
+  <button disabled="disabled">♥</button>
+<% end %>
 
 <br/>
 
 <!-- TODO(bmchrist) only show deal if relevant - deck not dealt yet -->
-<span>Game Actions:</span><button phx-click="deal">Deal</button>
+<span>Game Actions:</span>
+<%= if @state.current_round == :deal do %>
+  <button phx-click="deal">Deal</button>
+<% else %>
+  <button disabled="disabled">Deal</button>
+<% end %>
