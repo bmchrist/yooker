@@ -1,19 +1,21 @@
 <h2>Deck</h2>
-<div class="deck">
+<div class="hand">
   <%= for card <- @state.deck do %>
-    <span class="card"><%= card %></span>
+    <%= render "_card.html", card: card %>
   <% end %>
 </div>
 
 <h2>Current Round <%= @state.current_round %></h2>
 
 <h2>Top Card</h2>
-<span class="card"><%= List.first(@state.deck) %></span> <!-- TODO(bmchrist) abstract first card logic for this and selecting trump-->
-<span>
-  <%= if @state.current_round != :trump_select_round_one do %>
-    HIDDEN
-  <% end %>
-</span>
+<div class="hand">
+  <%= render "_card.html", card: List.first(@state.deck) %>
+  <span>
+    <%= if @state.current_round != :trump_select_round_one do %>
+      HIDDEN
+    <% end %>
+  </span>
+</div>
 
 <h2>Trump: <%= @state.trump %></h2>
 
@@ -26,9 +28,11 @@
       Dealer
     <% end %>
   </h2>
-  <%= for card <- hand do %>
-    <span class="card"><%= card %></span>
-  <% end %>
+  <div class="hand">
+    <%= for card <- hand do %>
+      <%= render "_card.html", card: card %>
+    <% end %>
+  </div>
 <% end %>
 
 <br/>

@@ -1,0 +1,5 @@
+<%= if Enum.member?(["♥","♦"], String.last(@card)) do %>
+  <span class="card red"><%= @card %></span>
+<% else %>
+  <span class="card"><%= @card %></span>
+<% end %>
