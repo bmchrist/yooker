@@ -16,33 +16,47 @@ defmodule Yooker.State do
       "9♦", "10♦", "J♦", "Q♦", "K♦", "A♦"
     ],
     player_hands: %{ a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
-    current_turn: nil, # rename to better indicate it will reference a player
-    table: {} # could get replaced by a "selected card per player" concept..?
+    trump: nil,
+    current_turn: :a, # rename to better indicate it will reference a player
+    _table: {} # could get replaced by a "selected card per player" concept..?
 
+  # Assumes a full deck of cards. Currently errors if attempted with less than 20 cards left in deck
+  # Also not dealing according to proper euchre rules..
+  # TODO(bmchrist): Follow Euchre rules :)
+  # TODO(bmchrist): Error handling - not full deck, already dealt
   def deal(%State{deck: deck, player_hands: player_hands} = state) do # TODO(bmchrist) do I need the state's whole def..? - perhaps only variables I need?
-    Logger.info(deck)
     deck = Enum.shuffle(deck)
 
     hands = Enum.chunk_every(deck, 5)
 
-    Logger.info(inspect(hands))
     {player_hand, hands} = List.pop_at(hands, 0)
     player_hands = %{player_hands | a: player_hand}
 
-    Logger.info(inspect(hands))
     {player_hand, hands} = List.pop_at(hands, 0)
     player_hands = %{player_hands | b: player_hand}
 
-    Logger.info(inspect(hands))
     {player_hand, hands} = List.pop_at(hands, 0)
     player_hands = %{player_hands | c: player_hand}
 
-    Logger.info(inspect(hands))
     {player_hand, hands} = List.pop_at(hands, 0)
     player_hands = %{player_hands | d: player_hand}
 
-    Logger.info(inspect(hands))
     {deck, _remain} = List.pop_at(hands, 0)
     %{state | player_hands: player_hands, deck: deck}
+  end
+
+  def advance_turn(%State{current_turn: current_turn} = state) do
+    %{state | current_turn:
+      case current_turn do
+        :a -> :b
+        :b -> :c
+        :c -> :d
+        :d -> :a
+      end
+    }
+  end
+
+  def choose_trump(%State{deck: deck} = state) do
+    %{state | trump: String.last(List.first(deck))}
   end
 end

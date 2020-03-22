@@ -5,6 +5,13 @@
   <% end %>
 </div>
 
+<h2>Top Card</h2>
+<span class="card"><%= List.first(@state.deck) %></span> <!-- TODO(bmchrist) abstract first card logic for this and selecting trump-->
+
+<h2>Trump: <%= @state.trump %></h2>
+
+<h2>Current Turn: <%= @state.current_turn %></h2>
+
 <%= for {player, hand} <- @state.player_hands do %>
   <h2>Player <%= player %></h2>
   <%= for card <- hand do %>
@@ -13,4 +20,14 @@
 <% end %>
 
 <br/>
-<button phx-click="deal">Deal</button>
+
+<!-- todo after fourth pass - choose any trump -->
+<span>Selecting Trump:</span>
+<!-- use state rather than phx-value here so client side can't screw with things.. -->
+<button phx-click="choose-trump">👆</button>
+<button phx-click="pass-trump">Pass</button>
+
+<br/>
+
+<!-- TODO(bmchrist) only show deal if relevant - deck not dealt yet -->
+<span>Game Actions:</span><button phx-click="deal">Deal</button>
