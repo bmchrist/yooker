@@ -15,6 +15,8 @@ defmodule YookerWeb.Router do
 
   scope "/", YookerWeb do
     pipe_through :browser
+
+    live "/", GameLive
   end
 
   # Other scopes may use custom stacks.

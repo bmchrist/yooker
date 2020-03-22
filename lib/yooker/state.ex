@@ -10,6 +10,7 @@ defmodule Yooker.State do
 
   defstruct deck: [1,2,3,4,5,10],
     player_hands: {}, # needs to be private..? or are these already by default?
+    testing: 2,
     current_turn: nil, # rename to better indicate it will reference a player
     table: {} # could get replaced by a "selected card per player" concept..?
 

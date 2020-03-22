@@ -13,7 +13,7 @@ config :yooker, YookerWeb.Endpoint,
   secret_key_base: "x3LAoH1SH9xMHyjPNpShE7xrwMTu5zLvNknMVaHuZEK6rnrO/dwthfIg+SP33ZXN",
   render_errors: [view: YookerWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: Yooker.PubSub, adapter: Phoenix.PubSub.PG2],
-  live_view: [signing_salt: "2UzgCyG0"]
+  live_view: [signing_salt: "dcrAFBLTxJYTDXWsJqRf4ju7C7pOqdSX"]
 
 # Configures Elixir's Logger
 config :logger, :console,
