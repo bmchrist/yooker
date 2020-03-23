@@ -17,6 +17,7 @@ defmodule Yooker.State do
     current_turn: :b, # rename to better indicate it will reference a player
     dealer: :a, # TODO(bmchrist) randomize later
     current_round: :deal, # todo - better name - TODO - can you add validators?
+    play_order: [:b, :c, :d, :a],
     table: %{a: nil, b: nil, c: nil, d: nil}
 
 
@@ -94,7 +95,7 @@ defmodule Yooker.State do
   end
 
   # Takes the card submitted, checks whose turn it is, if the card is in their hand, and then plays it
-  def play_card(%State{player_hands: player_hands, current_turn: current_turn, table: table} = state, card) do
+  def play_card(%State{player_hands: player_hands, current_turn: current_turn, table: table, current_round: round } = state, card) do
     # Get current player's hand
     current_player_hand = Map.get(player_hands, current_turn)
 
@@ -107,7 +108,13 @@ defmodule Yooker.State do
     new_table = %{table | current_turn => card}
 
     new_turn = get_next_turn(current_turn) # TODO only if relevant.. should abstract out is dealer logic from trump function
-    %{state | player_hands: new_player_hands, table: new_table, current_turn: new_turn}
+
+    round = if Map.get(new_table, new_turn)do # If a card has already been played by next player
+      :scoring
+    else
+      round # otherwise keep on with the same round
+    end
+    %{state | player_hands: new_player_hands, table: new_table, current_turn: new_turn, current_round: round}
   end
 
   # If it is the current player's turn and they are allowed to play the card
