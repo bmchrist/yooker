@@ -1,15 +1,25 @@
 <h2>Deck</h2>
 <div class="hand">
   <%= for card <- @state.deck do %>
-    <%= render "_card.html", card: card %>
+    <%= render "_card.html", card: card, state: @state %>
   <% end %>
 </div>
 
 <h2>Current Round <%= @state.current_round %></h2>
 
+<h2>Table</h2>
+<%= for {player, card} <- @state.table do %>
+  <p>
+    Player <%= player %>
+    <%= if card do %>
+      <%= render "_card.html", card: card, state: @state %>
+    <% end %>
+  </p>
+<% end %>
+
 <h2>Top Card</h2>
 <div class="hand">
-  <%= render "_card.html", card: List.first(@state.deck) %>
+  <%= render "_card.html", card: List.first(@state.deck), state: @state %>
   <span>
     <%= if @state.current_round != :trump_select_round_one do %>
       HIDDEN
@@ -30,7 +40,7 @@
   </h2>
   <div class="hand">
     <%= for card <- hand do %>
-      <%= render "_card.html", card: card %>
+      <%= render "_card.html", card: card, state: @state %>
     <% end %>
   </div>
 <% end %>
@@ -58,7 +68,6 @@
 <br/>
 
 <span>Game Actions:</span>
-  <button phx-click="deal">Deal</button>
 <%= if @state.current_round == :deal do %>
   <button phx-click="deal">Deal</button>
 <% else %>

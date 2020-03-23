@@ -12,12 +12,12 @@ defmodule Yooker.State do
       "9♥", "10♥", "J♥", "Q♥", "K♥", "A♥",
       "9♦", "10♦", "J♦", "Q♦", "K♦", "A♦"
     ],
-    player_hands: %{ a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
+    player_hands: %{a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
     trump: nil,
     current_turn: :b, # rename to better indicate it will reference a player
     dealer: :a, # TODO(bmchrist) randomize later
     current_round: :deal, # todo - better name - TODO - can you add validators?
-    _table: {} # could get replaced by a "selected card per player" concept..?
+    table: %{a: nil, b: nil, c: nil, d: nil}
 
 
   # Assumes a full deck of cards. Currently errors if attempted with less than 20 cards left in deck
@@ -91,6 +91,33 @@ defmodule Yooker.State do
     end
 
     %{state | trump: suit, current_round: :playing}
+  end
+
+  # Takes the card submitted, checks whose turn it is, if the card is in their hand, and then plays it
+  def play_card(%State{player_hands: player_hands, current_turn: current_turn, table: table} = state, card) do
+    # Get current player's hand
+    current_player_hand = Map.get(player_hands, current_turn)
+
+    if !Enum.member?(current_player_hand, card) do
+      raise "Card not found in current player's hand!"
+    end
+
+    new_player_hand = List.delete(current_player_hand, card)
+    new_player_hands = %{player_hands | current_turn => new_player_hand}
+    new_table = %{table | current_turn => card}
+
+    new_turn = get_next_turn(current_turn) # TODO only if relevant.. should abstract out is dealer logic from trump function
+    %{state | player_hands: new_player_hands, table: new_table, current_turn: new_turn}
+  end
+
+  # If it is the current player's turn and they are allowed to play the card
+  def can_play_card?(%State{player_hands: player_hands, current_turn: current_turn, current_round: current_round}, card) do
+    allowed_hand = Map.get(player_hands, current_turn)
+    card_follows_suit = true # TODO(bmchrist) add ability to check if it can be played
+
+    current_round == :playing && # Only can play a card if we're playin
+      Enum.member?(allowed_hand, card) && # and that card has to be part of the current player's hand
+      card_follows_suit
   end
 
   # TODO(bmchrist) - add tests..
