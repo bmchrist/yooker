@@ -54,7 +54,7 @@ defmodule Yooker.State do
 
   # Moves to next player, and also checks if we need to move to round 2 selection (when card is placed
   # face down)
-  def advance_trump_selection(%State{turn: turn, current_round: current_round, dealer: dealer} = state) do
+  def advance_trump_selection(%State{turn: turn, current_round: current_round} = state) do
     # if we're in trump selection rnd 1
     # starts left of dealer
     # if not dealer passing, just advance
@@ -230,7 +230,7 @@ defmodule Yooker.State do
 
   # TODO(bmchrist) - add tests..
   # Allows someone to pass if it's the first round. Allows everyone except dealer to pass on the second
-  def can_pass?(%State{current_round: current_round, dealer: dealer, turn: turn}) do
+  def can_pass?(%State{current_round: current_round, turn: turn}) do
     current_round == :trump_select_round_one or
       (current_round == :trump_select_round_two and !(turn == 3)) # round two, the dealer must deal
   end
