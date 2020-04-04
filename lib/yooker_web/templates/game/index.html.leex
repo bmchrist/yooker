@@ -31,7 +31,7 @@
 
 <h2>Trump: <%= @state.trump %></h2>
 
-<h2>Current Turn: <%= @state.current_turn %></h2>
+<h2>Current Turn: <%= Enum.at(@state.play_order, @state.turn) %></h2>
 
 <%= for {player, hand} <- @state.player_hands do %>
   <h2>
