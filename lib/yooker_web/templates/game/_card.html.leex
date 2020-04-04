@@ -1,4 +1,4 @@
-<% color = if Enum.member?(["♥","♦"], String.last(@card)), do: "red", else: "black" %>
+<% color = if Enum.member?(["♥","♦"], Map.get(@card, :suit)), do: "red", else: "black" %>
 <% playable = Yooker.State.can_play_card?(@state, @card) %>
 
 <%= if playable do %>
@@ -6,5 +6,6 @@
 <% else %>
   <span class="card text-suit-<%= color%>">
 <%= end %>
-  <%= @card %>
+  <%= Map.get(@card, :value) %>
+  <%= Map.get(@card, :suit) %>
 </span>

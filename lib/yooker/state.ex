@@ -7,10 +7,17 @@ defmodule Yooker.State do
   # TODO: make it's something like State.top_card(state) that just returns a card..?
 
   defstruct deck: [
-      "9♠", "10♠", "J♠", "Q♠", "K♠", "A♠",
-      "9♣", "10♣", "J♣", "Q♣", "K♣", "A♣",
-      "9♥", "10♥", "J♥", "Q♥", "K♥", "A♥",
-      "9♦", "10♦", "J♦", "Q♦", "K♦", "A♦"
+      %{value: "9", suit: "♠"}, %{value: "10", suit: "♠"}, %{value: "J", suit: "♠"},
+      %{value: "Q", suit: "♠"}, %{value: "K", suit: "♠"}, %{value: "A", suit: "♠"},
+
+      %{value: "9", suit: "♣"}, %{value: "10", suit: "♣"}, %{value: "J", suit: "♣"}, 
+      %{value: "Q", suit: "♣"}, %{value: "K", suit: "♣"}, %{value: "A", suit: "♣"},
+
+      %{value: "9", suit: "♥"}, %{value: "10", suit: "♥"}, %{value: "J", suit: "♥"}, 
+      %{value: "Q", suit: "♥"}, %{value: "K", suit: "♥"}, %{value: "A", suit: "♥"},
+
+      %{value: "9", suit: "♦"}, %{value: "10", suit: "♦"}, %{value: "J", suit: "♦"}, 
+      %{value: "Q", suit: "♦"}, %{value: "K", suit: "♦"}, %{value: "A", suit: "♦"}
     ],
     player_hands: %{a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
     trump: nil,
@@ -88,7 +95,7 @@ defmodule Yooker.State do
         Logger.error("Suit selected when incorrect round")
       end
 
-      String.last(List.first(deck))
+      Map.get(List.first(deck), :suit)
     end
 
     %{state | trump: suit, current_round: :playing}
@@ -133,7 +140,7 @@ defmodule Yooker.State do
   # Finds the best card, gives a point to that team, clears the table, and passes turn to the winning player
   def score_hand(%State{table: table, trump: trump, current_turn: current_turn, score: score} = state) do
 
-    suit_led = String.last(table[current_turn]) # TODO replace with using stored "suit led" logic (do as part of turn tracking logic update)
+    suit_led = Map.get(table[current_turn], :suit) # TODO replace with using stored "suit led" logic (do as part of turn tracking logic update)
 
     # Player one - who led and set this hand's suit - starts as the best card
     best_player = current_turn
@@ -188,10 +195,10 @@ defmodule Yooker.State do
   # Trump, then leading suit. Highest card if both have the same suit value
   defp first_card_wins?(first_card, second_card, leading_suit, trump) do
     Logger.info("Comparing #{first_card} to #{second_card}")
-    first_value = String.first(first_card)
-    first_suit = String.last(first_card)
-    second_value = String.first(second_card)
-    second_suit = String.last(second_card)
+    first_value = Map.get(first_card, :value)
+    first_suit = Map.get(first_card, :suit)
+    second_value = Map.get(second_card, :value)
+    second_suit = Map.get(second_card, :suit)
 
     # who has highest suit (trump, led, nil)
 
