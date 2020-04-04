@@ -127,46 +127,11 @@ defmodule Yooker.State do
   # Finds the best card, gives a point to that team, clears the table, and passes turn to the winning player
   def score_hand(%State{table: table, trump: trump, score: score, play_order: play_order} = state) do
 
-    first_player = Enum.at(play_order, 0)
-
     # Card led by the first player is the leading suit
+    first_player = Enum.at(play_order, 0)
     suit_led = parse_card(table[first_player]) |> elem(1)
 
-    # Player one - who led and set this hand's suit - starts as the best card
-    best_player = first_player
-
-    # TODO abstract this logic into a function
-    # Score against 2nd player
-    turn = 1
-    best_player = if first_card_wins?(table[best_player], table[Enum.at(play_order, turn)], suit_led, trump) do
-      Logger.info("Player #{best_player} beats Player #{Enum.at(play_order, turn)}")
-      best_player
-    else
-      Logger.info("Player #{Enum.at(play_order, turn)} beats Player #{best_player}")
-      Enum.at(play_order, turn)
-    end
-
-    # Score winner against 3rd player
-    turn = turn + 1
-    best_player = if first_card_wins?(table[best_player], table[Enum.at(play_order, turn)], suit_led, trump) do
-      Logger.info("Player #{best_player} beats Player #{Enum.at(play_order, turn)}")
-      best_player
-    else
-      Logger.info("Player #{Enum.at(play_order, turn)} beats Player #{best_player}")
-      Enum.at(play_order, turn)
-    end
-
-    # Score winner against 4th player
-    turn = turn + 1
-    best_player = if first_card_wins?(table[best_player], table[Enum.at(play_order, turn)], suit_led, trump) do
-      Logger.info("Player #{best_player} beats Player #{Enum.at(play_order, turn)}")
-      best_player
-    else
-      Logger.info("Player #{Enum.at(play_order, turn)} beats Player #{best_player}")
-      Enum.at(play_order, turn)
-    end
-
-    Logger.info("Best Player: #{best_player}")
+    best_player = Enum.at(play_order, get_best_player_index(table, play_order, 0, 1, suit_led, trump))
 
     # TODO: this feel gnarly... clean up logic for updating score
     # TODO: allow scoring 2 or 4 points in special cases
@@ -182,6 +147,20 @@ defmodule Yooker.State do
     # TODO: store last trick in case people want to see it
     %{state | score: score, play_order: play_order, turn: 0, current_round: :playing, table: %{a: nil, b: nil, c: nil, d: nil}}
   end
+
+
+  defp get_best_player_index(table, play_order, best_player_index, competitor_index, suit_led, trump) do
+    if competitor_index <= 3 do
+      if first_card_wins?(table[Enum.at(play_order, best_player_index)], table[Enum.at(play_order, competitor_index)], suit_led, trump) do
+        get_best_player_index(table, play_order, best_player_index, competitor_index+1, suit_led, trump)
+      else
+        get_best_player_index(table, play_order, competitor_index, competitor_index+1, suit_led, trump)
+      end
+    else
+      best_player_index
+    end
+  end
+
 
   # Checks which card is the strongest - returns true if it's the first one
   # Assumes both cards are legal plays
