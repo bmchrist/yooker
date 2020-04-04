@@ -31,6 +31,14 @@ defmodule YookerWeb.GameLive do
 
   def handle_event("play-card", %{"card" => card}, %{assigns: assigns} = socket) do
     new_state = State.play_card(assigns.state, card)
+
+    # Doing this second function based on if statement feels a bit like a code smell... tbd -- TODO review
+    new_state = if new_state.current_round == :scoring do
+      State.score_hand(new_state)
+    else
+      new_state
+    end
+
     {:noreply, assign(socket, state: new_state)}
   end
 end

@@ -7,6 +7,8 @@
 
 <h2>Current Round <%= @state.current_round %></h2>
 
+<h2>Score AC: <%= @state.score[:ac] %> BD: <%= @state.score[:bd] %></h2>
+
 <h2>Table</h2>
 <%= for {player, card} <- @state.table do %>
   <p>
