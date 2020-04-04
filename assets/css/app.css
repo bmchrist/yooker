@@ -6,3 +6,7 @@
 .text-suit-red {
   color: red;
 }
+
+.card.playable {
+  border-color: green;
+}
