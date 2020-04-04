@@ -15,12 +15,13 @@ defmodule Yooker.State do
     ],
     player_hands: %{a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
     trump: nil,
-    current_turn: :b, # rename to better indicate it will reference a player
-    dealer: :a, # TODO(bmchrist) randomize later
     current_round: :deal, # todo - better name - TODO - can you add validators?
     table: %{a: nil, b: nil, c: nil, d: nil},
-    score: %{ac: 0, bd: 0}
+    score: %{ac: 0, bd: 0},
 
+    dealer: :a, # TODO(bmchrist) randomize later
+    play_order: [:b, :c, :d, :a],
+    turn: 0
 
   # Assumes a full deck of cards. Currently errors if attempted with less than 20 cards left in deck
   # Also not dealing according to proper euchre rules.. eg 3 2 3 2
@@ -53,26 +54,26 @@ defmodule Yooker.State do
 
   # Moves to next player, and also checks if we need to move to round 2 selection (when card is placed
   # face down)
-  def advance_trump_selection(%State{current_turn: current_turn, current_round: current_round, dealer: dealer} = state) do
+  def advance_trump_selection(%State{turn: turn, current_round: current_round} = state) do
     # if we're in trump selection rnd 1
     # starts left of dealer
     # if not dealer passing, just advance
     # else if dealer passing, advance round
-    new_turn = get_next_turn(current_turn)
 
-    # If the dealer just advanced the turn
-    new_round = if current_turn == dealer do
+    # If we're advancing from turn 3, the dealer just passed. Move on to round 2 selection
+    {new_round, turn} = if turn == 3 do
       if current_round == :trump_select_round_one do
-        :trump_select_round_two
+        {:trump_select_round_two, 0}
       else
+        # This should not happen as can_pass? will prevent dealer from passing in round two
         Logger.error("Invalid round advancement")
         :error_round
       end
     else
-      current_round
+      {current_round, turn + 1}
     end
 
-    %{state | current_turn: new_turn, current_round: new_round}
+    %{state | current_round: new_round, turn: turn}
   end
 
   # Takes selection from client for trump. Sets trump and moves to Playing round
@@ -96,11 +97,10 @@ defmodule Yooker.State do
   end
 
   # Takes the card submitted, checks whose turn it is, ensures the is in their hand, and then plays it
-  def play_card(%State{player_hands: player_hands, current_turn: current_turn, table: table, current_round: round } = state, card) do
-    # TODO - store "first card led" to allow logic on what cards can be played
-
+  def play_card(%State{player_hands: player_hands, play_order: play_order, turn: turn, table: table, current_round: round } = state, card) do
     # Get current player's hand
-    current_player_hand = Map.get(player_hands, current_turn)
+    current_player = Enum.at(play_order, turn)
+    current_player_hand = Map.get(player_hands, current_player)
 
     # We can't play a card not in our hand..
     if !Enum.member?(current_player_hand, card) do
@@ -109,68 +109,29 @@ defmodule Yooker.State do
 
     # Take the card out of their hand...
     new_player_hand = List.delete(current_player_hand, card)
-    new_player_hands = %{player_hands | current_turn => new_player_hand}
+    new_player_hands = %{player_hands | current_player => new_player_hand}
 
     # and put it on the table
-    new_table = %{table | current_turn => card}
+    new_table = %{table | current_player => card}
 
-    # TODO should clean up turn passing logic - for now, this either passes to next person, or
-    # score round function assumes we've looped back to first player because of this
-    new_turn = get_next_turn(current_turn)
-
-    round = if Map.get(new_table, new_turn) do # If next player has already played, the round is over
+    round = if turn == 3 do # If everyone has played
       :scoring # this just leads to play-card in game_live calling score_hand - could simplify logic
     else # otherwise keep on with the same round
       round
     end
 
-    %{state | player_hands: new_player_hands, table: new_table, current_turn: new_turn, current_round: round}
+    %{state | player_hands: new_player_hands, table: new_table, turn: turn + 1, current_round: round}
   end
 
-  # TODO - BIG assumption, that current player is the one who led the round - relies on play_card having advanced the turn each time
-  # fragile - think of better way of doing this.. - see current_order issue on GH, and see note on passing logic in play_card fn
-  #
   # Takes the table, what trump is, who led, and the score
   # Finds the best card, gives a point to that team, clears the table, and passes turn to the winning player
-  def score_hand(%State{table: table, trump: trump, current_turn: current_turn, score: score} = state) do
+  def score_hand(%State{table: table, trump: trump, score: score, play_order: play_order} = state) do
 
-    suit_led = parse_card(table[current_turn]) |> elem(1) # TODO replace with using stored "suit led" logic (do as part of turn tracking logic update)
+    # Card led by the first player is the leading suit
+    first_player = Enum.at(play_order, 0)
+    suit_led = parse_card(table[first_player]) |> elem(1)
 
-    # Player one - who led and set this hand's suit - starts as the best card
-    best_player = current_turn
-
-    # TODO abstract this logic into a function
-    # Score against 2nd player
-    next_turn = get_next_turn(current_turn)
-    best_player = if first_card_wins?(table[best_player], table[next_turn], suit_led, trump) do
-      Logger.info("Player #{best_player} beats Player #{next_turn}")
-      best_player
-    else
-      Logger.info("Player #{next_turn} beats Player #{best_player}")
-      next_turn
-    end
-
-    # Score winner against 3rd player
-    next_turn = get_next_turn(next_turn)
-    best_player = if first_card_wins?(table[best_player], table[next_turn], suit_led, trump) do
-      Logger.info("Player #{best_player} beats Player #{next_turn}")
-      best_player
-    else
-      Logger.info("Player #{next_turn} beats Player #{best_player}")
-      next_turn
-    end
-
-    # Score winner against 4th player
-    next_turn = get_next_turn(next_turn)
-    best_player = if first_card_wins?(table[best_player], table[next_turn], suit_led, trump) do
-      Logger.info("Player #{best_player} beats Player #{next_turn}")
-      best_player
-    else
-      Logger.info("Player #{next_turn} beats Player #{best_player}")
-      next_turn
-    end
-
-    Logger.info("Best Player: #{best_player}")
+    best_player = Enum.at(play_order, get_best_player_index(table, play_order, 0, 1, suit_led, trump))
 
     # TODO: this feel gnarly... clean up logic for updating score
     # TODO: allow scoring 2 or 4 points in special cases
@@ -180,10 +141,26 @@ defmodule Yooker.State do
       %{score | bd: score[:bd] + 1}
     end
 
+     play_order = get_next_hand_order(best_player)
+
     # Return updated score, next turn, reset back to playing for new round, and clear the table
     # TODO: store last trick in case people want to see it
-    %{state | score: score, current_turn: best_player, current_round: :playing, table: %{a: nil, b: nil, c: nil, d: nil}}
+    %{state | score: score, play_order: play_order, turn: 0, current_round: :playing, table: %{a: nil, b: nil, c: nil, d: nil}}
   end
+
+
+  defp get_best_player_index(table, play_order, best_player_index, competitor_index, suit_led, trump) do
+    if competitor_index <= 3 do
+      if first_card_wins?(table[Enum.at(play_order, best_player_index)], table[Enum.at(play_order, competitor_index)], suit_led, trump) do
+        get_best_player_index(table, play_order, best_player_index, competitor_index+1, suit_led, trump)
+      else
+        get_best_player_index(table, play_order, competitor_index, competitor_index+1, suit_led, trump)
+      end
+    else
+      best_player_index
+    end
+  end
+
 
   # Checks which card is the strongest - returns true if it's the first one
   # Assumes both cards are legal plays
@@ -242,8 +219,8 @@ defmodule Yooker.State do
   end
 
   # If it is the current player's turn and they are allowed to play the card
-  def can_play_card?(%State{player_hands: player_hands, current_turn: current_turn, current_round: current_round}, card) do
-    allowed_hand = Map.get(player_hands, current_turn)
+  def can_play_card?(%State{player_hands: player_hands, play_order: play_order, turn: turn, current_round: current_round}, card) do
+    allowed_hand = Map.get(player_hands, Enum.at(play_order, turn))
     card_follows_suit = true # TODO(bmchrist) add ability to check if it can be played
 
     current_round == :playing && # Only can play a card if we're playin
@@ -253,18 +230,18 @@ defmodule Yooker.State do
 
   # TODO(bmchrist) - add tests..
   # Allows someone to pass if it's the first round. Allows everyone except dealer to pass on the second
-  def can_pass?(%State{current_round: current_round, dealer: dealer, current_turn: current_turn}) do
+  def can_pass?(%State{current_round: current_round, turn: turn}) do
     current_round == :trump_select_round_one or
-      (current_round == :trump_select_round_two and !(current_turn == dealer))
+      (current_round == :trump_select_round_two and !(turn == 3)) # round two, the dealer must deal
   end
 
-  # TODO(bmchrist) - possibly replace this with a list of "turns remaining"
-  defp get_next_turn(turn) do
-    case turn do
-      :a -> :b
-      :b -> :c
-      :c -> :d
-      :d -> :a
+  defp get_next_hand_order(first_player) do
+    case first_player do
+      :a -> [:a, :b, :c, :d]
+      :b -> [:b, :c, :d, :a]
+      :c -> [:c, :d, :a, :b]
+      :d -> [:d, :a, :b, :c]
+      true -> raise "Unexpected first_player for play order"
     end
   end
 
