@@ -1,4 +1,5 @@
 defmodule Yooker.State do
+  # todo -can I pass args by keywords in elixir in my private functions rather than just list of args?
   require Logger
 
   alias Yooker.State
@@ -8,8 +9,8 @@ defmodule Yooker.State do
 
   defstruct deck: [
       "9♠", "10♠", "J♠", "Q♠", "K♠", "A♠",
-      "9♣", "10♣", "J♣", "Q♣", "K♣", "A♣",
       "9♥", "10♥", "J♥", "Q♥", "K♥", "A♥",
+      "9♣", "10♣", "J♣", "Q♣", "K♣", "A♣",
       "9♦", "10♦", "J♦", "Q♦", "K♦", "A♦"
     ],
     player_hands: %{a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
@@ -88,7 +89,7 @@ defmodule Yooker.State do
         Logger.error("Suit selected when incorrect round")
       end
 
-      String.last(List.first(deck))
+      parse_card(List.first(deck)) |> elem(1)
     end
 
     %{state | trump: suit, current_round: :playing}
@@ -133,7 +134,7 @@ defmodule Yooker.State do
   # Finds the best card, gives a point to that team, clears the table, and passes turn to the winning player
   def score_hand(%State{table: table, trump: trump, current_turn: current_turn, score: score} = state) do
 
-    suit_led = String.last(table[current_turn]) # TODO replace with using stored "suit led" logic (do as part of turn tracking logic update)
+    suit_led = parse_card(table[current_turn]) |> elem(1) # TODO replace with using stored "suit led" logic (do as part of turn tracking logic update)
 
     # Player one - who led and set this hand's suit - starts as the best card
     best_player = current_turn
@@ -185,34 +186,59 @@ defmodule Yooker.State do
   end
 
   # Checks which card is the strongest - returns true if it's the first one
-  # Trump, then leading suit. Highest card if both have the same suit value
+  # Assumes both cards are legal plays
   defp first_card_wins?(first_card, second_card, leading_suit, trump) do
-    Logger.info("Comparing #{first_card} to #{second_card}")
-    first_value = String.first(first_card)
-    first_suit = String.last(first_card)
-    second_value = String.first(second_card)
-    second_suit = String.last(second_card)
-
-    # who has highest suit (trump, led, nil)
-
-    # Highest trump (if they were allowed to play trump - but we could ensure that's checked in play_card function)
-    # Otherwise, highest card of leading suit
-    # If neither are trump, and neither of leading suit, error
-    # # TODO update to handle left bower w/ new card storage
-    cond do
-      first_suit == second_suit -> first_card_value_higher?(first_value, second_value)
-      first_suit == trump -> true
-      second_suit == trump -> false
-      first_suit == leading_suit -> true
-      second_suit == leading_suit -> false
-      # If we compare from first card through, and keep best - we should always at least have a leading suit
-      true -> raise "No trump or leading suit found, when expected"
-    end
+    Logger.info("Playing #{first_card} against #{second_card}")
+    get_value_for_card(first_card, leading_suit, trump) > get_value_for_card(second_card, leading_suit, trump)
   end
 
-  # TODO obviously this does nothing useful
-  defp first_card_value_higher?(first_value, second_value) do
-    true # #TODO upgrade w/ new card scoring
+  defp get_value_for_card(card, leading_suit, trump) do
+    # Get the value and suit for the card we want to score
+    {value, suit} = parse_card(card)
+
+    # Face Values
+    # TODO would cond do be more efficient here?
+    face_value = %{
+      "A" => 14,
+      "K" => 13,
+      "Q" => 12,
+      "J" => 11,
+      "10" => 10,
+      "9" => 9,
+    }
+
+    # Trump Values (see multiplier below)
+    # JRight  11000
+    # JLeft   1100
+    # A       140
+    # K       130
+    # Q       120
+    # 10      100
+    # 9       90
+    #
+    # TODO would a map and lookup be more efficient here?
+    # TODO seems inefficient to always do- only do this if we know it's a Jack?
+    left_bower_suit = case trump do
+      "♠" -> "♣"
+      "♣" -> "♠"
+      "♥" -> "♦"
+      "♦" -> "♥"
+    end
+
+    # If it's the right bower, it's worth a lot
+    # If it's the left bower, it's worth a little less
+    # Otherwise if it's any trump, it's worth a premium on its face value
+    # Otherwise if it follows suit, it's worth its face value
+    # Otherwise it's worth 0 - did not follow suit
+    multiplier = cond do
+      value == "J" and suit == trump -> 1000
+      value == "J" and suit == left_bower_suit -> 100
+      suit == trump -> 10
+      suit == leading_suit -> 1
+      true -> 0
+    end
+
+    multiplier * Map.get(face_value, value)
   end
 
   # If it is the current player's turn and they are allowed to play the card
@@ -240,5 +266,11 @@ defmodule Yooker.State do
       :c -> :d
       :d -> :a
     end
+  end
+
+  # TODO find all the spots that use string.first, etc
+  # Returns {value, suit}
+  def parse_card(card) do
+    String.split_at(card, -1)
   end
 end
