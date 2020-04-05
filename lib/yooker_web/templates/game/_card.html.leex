@@ -1,10 +1,10 @@
-<% color = if Enum.member?(["♥","♦"], Yooker.State.parse_card(@card) |> elem(1)), do: "red", else: "black" %>
+<% color = if Enum.member?(["♥","♦"], Yooker.State.get_suit_of_card(@card, nil)), do: "red", else: "black" %>
 <% playable = Yooker.State.can_play_card?(@state, @card) %>
 
 <%= if playable do %>
   <span class="card playable text-suit-<%= color %>" phx-click="play-card" phx-value-card="<%= @card %>">
 <% else %>
   <span class="card text-suit-<%= color%>">
-<%= end %>
+<% end %>
   <%= @card %>
 </span>

@@ -90,7 +90,7 @@ defmodule Yooker.State do
         Logger.error("Suit selected when incorrect round")
       end
 
-      parse_card(List.first(deck)) |> elem(1)
+      get_suit_of_card(List.first(deck), nil)
     end
 
     %{state | trump: suit, current_round: :playing}
@@ -102,9 +102,8 @@ defmodule Yooker.State do
     current_player = Enum.at(play_order, turn)
     current_player_hand = Map.get(player_hands, current_player)
 
-    # We can't play a card not in our hand..
-    if !Enum.member?(current_player_hand, card) do
-      raise "Card not found in current player's hand!"
+    if !State.can_play_card?(state, card) do
+      raise "Card selected cannot be played!"
     end
 
     # Take the card out of their hand...
@@ -129,7 +128,7 @@ defmodule Yooker.State do
 
     # Card led by the first player is the leading suit
     first_player = Enum.at(play_order, 0)
-    suit_led = parse_card(table[first_player]) |> elem(1)
+    suit_led = get_suit_of_card(table[first_player], trump)
 
     best_player = Enum.at(play_order, get_best_player_index(table, play_order, 0, 1, suit_led, trump))
 
@@ -165,13 +164,13 @@ defmodule Yooker.State do
   # Checks which card is the strongest - returns true if it's the first one
   # Assumes both cards are legal plays
   defp first_card_wins?(first_card, second_card, leading_suit, trump) do
-    Logger.info("Playing #{first_card} against #{second_card}")
-    get_value_for_card(first_card, leading_suit, trump) > get_value_for_card(second_card, leading_suit, trump)
+    get_score_for_card(first_card, leading_suit, trump) > get_score_for_card(second_card, leading_suit, trump)
   end
 
-  defp get_value_for_card(card, leading_suit, trump) do
+  defp get_score_for_card(card, leading_suit, trump) do
     # Get the value and suit for the card we want to score
-    {value, suit} = parse_card(card)
+    suit = get_suit_of_card(card, nil) # this handles the left bower on its own, get face value of suit
+    value = get_value_of_card(card)
 
     # Face Values
     # TODO would cond do be more efficient here?
@@ -193,15 +192,6 @@ defmodule Yooker.State do
     # 10      100
     # 9       90
     #
-    # TODO would a map and lookup be more efficient here?
-    # TODO seems inefficient to always do- only do this if we know it's a Jack?
-    left_bower_suit = case trump do
-      "♠" -> "♣"
-      "♣" -> "♠"
-      "♥" -> "♦"
-      "♦" -> "♥"
-    end
-
     # If it's the right bower, it's worth a lot
     # If it's the left bower, it's worth a little less
     # Otherwise if it's any trump, it's worth a premium on its face value
@@ -209,7 +199,7 @@ defmodule Yooker.State do
     # Otherwise it's worth 0 - did not follow suit
     multiplier = cond do
       value == "J" and suit == trump -> 1000
-      value == "J" and suit == left_bower_suit -> 100
+      value == "J" and suit == get_left_suit(trump) -> 100
       suit == trump -> 10
       suit == leading_suit -> 1
       true -> 0
@@ -219,16 +209,33 @@ defmodule Yooker.State do
   end
 
   # If it is the current player's turn and they are allowed to play the card
-  def can_play_card?(%State{player_hands: player_hands, play_order: play_order, turn: turn, current_round: current_round}, card) do
+  def can_play_card?(%State{player_hands: player_hands, trump: trump, play_order: play_order, turn: turn, current_round: current_round, table: table}, card) do
     allowed_hand = Map.get(player_hands, Enum.at(play_order, turn))
-    card_follows_suit = true # TODO(bmchrist) add ability to check if it can be played
+
+    suit_led = if turn > 0 do
+      get_suit_of_card(Map.get(table, Enum.at(play_order, 0)), trump)
+    else
+      nil
+    end
+
+    suits_in_hand = for card <- allowed_hand, do: get_suit_of_card(card, trump)
+
+    card_follows_suit = (
+      # The first card can be anything
+      turn == 0 or
+
+      # If this card's suit matches the suit of the card of the first player
+      get_suit_of_card(card, trump) == suit_led or
+
+      # Or if the player cannot follow suit, they can play anything
+      !Enum.member?(suits_in_hand, suit_led)
+    )
 
     current_round == :playing && # Only can play a card if we're playin
       Enum.member?(allowed_hand, card) && # and that card has to be part of the current player's hand
       card_follows_suit
   end
 
-  # TODO(bmchrist) - add tests..
   # Allows someone to pass if it's the first round. Allows everyone except dealer to pass on the second
   def can_pass?(%State{current_round: current_round, turn: turn}) do
     current_round == :trump_select_round_one or
@@ -245,9 +252,28 @@ defmodule Yooker.State do
     end
   end
 
-  # TODO find all the spots that use string.first, etc
-  # Returns {value, suit}
-  def parse_card(card) do
-    String.split_at(card, -1)
+  # Returns the face value of the card
+  def get_value_of_card(card) do
+    String.split_at(card, -1) |> elem(0)
+  end
+
+  # Returns the suit of the card, returning the trump suit for the left bower
+  # Passing nil for trump will just use the suit on the face
+  def get_suit_of_card(card, trump) do
+    {value, suit} = String.split_at(card, -1)
+    if trump != nil and value == "J" and suit == get_left_suit(trump) do
+      trump
+    else
+      suit
+    end
+  end
+
+  defp get_left_suit(suit) do
+    case suit do
+      "♠" -> "♣"
+      "♣" -> "♠"
+      "♥" -> "♦"
+      "♦" -> "♥"
+    end
   end
 end
