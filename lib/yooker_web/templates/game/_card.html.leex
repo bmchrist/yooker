@@ -1,4 +1,4 @@
-<% color = if Enum.member?(["♥","♦"], Yooker.State.parse_card(@card, :suit)), do: "red", else: "black" %>
+<% color = if Enum.member?(["♥","♦"], Yooker.State.get_suit_of_card(@card, nil)), do: "red", else: "black" %>
 <% playable = Yooker.State.can_play_card?(@state, @card) %>
 
 <%= if playable do %>

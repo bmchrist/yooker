@@ -97,7 +97,35 @@ defmodule Yooker.StateTest do
     end
 
     test "left bower is treated like trump suit for following" do
-      Logger.warn("TODO")
+      player_hands = %{
+        a: ["Q♥", "J♦", "9♠", "K♦", "10♣"],
+        b: ["10♥","A♥", "A♣", "9♣"],
+        c: ["J♣", "A♠", "A♦", "9♥", "J♠"],
+        d: ["Q♦", "Q♣", "K♥", "10♦", "K♠"]
+      }
+      table = %{
+        a: nil,
+        b: "Q♠",
+        c: nil,
+        d: nil
+      }
+      turn = 1
+      play_order = [:b, :c, :d, :a]
+
+      state = %State{
+        player_hands: player_hands,
+        current_round: :playing,
+        turn: turn,
+        trump: "♠",
+        table: table,
+        play_order: play_order
+      }
+
+      assert State.can_play_card?(state, "J♣") == true
+      assert State.can_play_card?(state, "A♠") == true
+      assert State.can_play_card?(state, "A♦") == false
+      assert State.can_play_card?(state, "9♥") == false
+      assert State.can_play_card?(state, "J♠") == true
     end
   end
 
