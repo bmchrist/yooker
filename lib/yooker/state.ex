@@ -90,7 +90,7 @@ defmodule Yooker.State do
         Logger.error("Suit selected when incorrect round")
       end
 
-      parse_card(List.first(deck)) |> elem(1)
+      parse_card(List.first(deck), :suit)
     end
 
     %{state | trump: suit, current_round: :playing}
@@ -102,9 +102,8 @@ defmodule Yooker.State do
     current_player = Enum.at(play_order, turn)
     current_player_hand = Map.get(player_hands, current_player)
 
-    # We can't play a card not in our hand..
-    if !Enum.member?(current_player_hand, card) do
-      raise "Card not found in current player's hand!"
+    if !State.can_play_card?(state, card) do
+      raise "Card selected cannot be played!"
     end
 
     # Take the card out of their hand...
@@ -129,7 +128,7 @@ defmodule Yooker.State do
 
     # Card led by the first player is the leading suit
     first_player = Enum.at(play_order, 0)
-    suit_led = parse_card(table[first_player]) |> elem(1)
+    suit_led = parse_card(table[first_player], :suit)
 
     best_player = Enum.at(play_order, get_best_player_index(table, play_order, 0, 1, suit_led, trump))
 
@@ -171,7 +170,8 @@ defmodule Yooker.State do
 
   defp get_value_for_card(card, leading_suit, trump) do
     # Get the value and suit for the card we want to score
-    {value, suit} = parse_card(card)
+    suit = parse_card(card, :suit)
+    value = parse_card(card, :value)
 
     # Face Values
     # TODO would cond do be more efficient here?
@@ -219,16 +219,33 @@ defmodule Yooker.State do
   end
 
   # If it is the current player's turn and they are allowed to play the card
-  def can_play_card?(%State{player_hands: player_hands, play_order: play_order, turn: turn, current_round: current_round}, card) do
+  def can_play_card?(%State{player_hands: player_hands, play_order: play_order, turn: turn, current_round: current_round, table: table}, card) do
     allowed_hand = Map.get(player_hands, Enum.at(play_order, turn))
-    card_follows_suit = true # TODO(bmchrist) add ability to check if it can be played
+
+    suit_led = if turn > 0 do
+      parse_card(Map.get(table, Enum.at(play_order, 0)), :suit)
+    else
+      nil
+    end
+
+    suits_in_hand = for card <- allowed_hand, do: parse_card(card, :suit)
+
+    card_follows_suit = (
+      # The first card can be anything
+      turn == 0 or
+
+      # If this card's suit matches the suit of the card of the first player
+      parse_card(card, :suit) == suit_led or
+
+      # Or if the player cannot follow suit, they can play anything
+      !Enum.member?(suits_in_hand, suit_led)
+    )
 
     current_round == :playing && # Only can play a card if we're playin
       Enum.member?(allowed_hand, card) && # and that card has to be part of the current player's hand
       card_follows_suit
   end
 
-  # TODO(bmchrist) - add tests..
   # Allows someone to pass if it's the first round. Allows everyone except dealer to pass on the second
   def can_pass?(%State{current_round: current_round, turn: turn}) do
     current_round == :trump_select_round_one or
@@ -245,9 +262,13 @@ defmodule Yooker.State do
     end
   end
 
-  # TODO find all the spots that use string.first, etc
-  # Returns {value, suit}
-  def parse_card(card) do
-    String.split_at(card, -1)
+  # Returns value or suit, based on atom :value, or :suit passed to type
+  def parse_card(card, type) do
+    {value, suit} = String.split_at(card, -1)
+    case type do
+      :value -> value
+      :suit -> suit
+      true -> raise "Invalid selection for parse card"
+    end
   end
 end
