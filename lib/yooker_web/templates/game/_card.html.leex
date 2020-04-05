@@ -2,9 +2,14 @@
 <% playable = Yooker.State.can_play_card?(@state, @card) %>
 
 <%= if playable do %>
-  <span class="card playable text-suit-<%= color %>" phx-click="play-card" phx-value-card="<%= @card %>">
+  <div class="card playable text-suit-<%= color %>" phx-click="play-card" phx-value-card="<%= @card %>">
 <% else %>
-  <span class="card text-suit-<%= color%>">
+  <div class="card text-suit-<%= color%>">
 <% end %>
-  <%= @card %>
-</span>
+  <span class="card-value top"><%= Yooker.State.get_value_of_card(@card) %>
+  </span>
+  <span class="card-suit"><%= Yooker.State.get_suit_of_card(@card, nil) %>
+  </span>
+  <span class="card-value bottom"><%= Yooker.State.get_value_of_card(@card) %>
+  </span>
+</div>
