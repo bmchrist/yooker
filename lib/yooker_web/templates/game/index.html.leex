@@ -1,6 +1,6 @@
-<h2>Deck</h2>
+<h2>Kitty</h2>
 <div class="hand">
-  <%= for card <- @state.deck do %>
+  <%= for card <- @state.kitty do %>
     <%= render "_card.html", card: card, state: @state %>
   <% end %>
 </div>
@@ -21,23 +21,30 @@
 
 <h2>Top Card</h2>
 <div class="hand">
-  <%= render "_card.html", card: List.first(@state.deck), state: @state %>
-  <span>
-    <%= if @state.current_round != :trump_select_round_one do %>
-      HIDDEN
-    <% end %>
-  </span>
+  <%= if length(@state.kitty) > 0 do %>
+    <%= render "_card.html", card: List.first(@state.kitty), state: @state %>
+    <span>
+      <%= if @state.current_round != :trump_select_round_one do %>
+        HIDDEN
+      <% end %>
+    </span>
+  <% end %>
 </div>
 
 <h2>Trump: <%= @state.trump %></h2>
 
-<h2>Current Turn: <%= Enum.at(@state.play_order, @state.turn) %></h2>
 
 <%= for {player, hand} <- @state.player_hands do %>
   <h2>
-    Player <%= player %>
+    Player <%= player %> | 
     <%= if @state.dealer == player do %>
-      Dealer
+      Dealer | 
+    <% end %>
+    <%= if @state.trump_selector == player do %>
+      Chose Trump |
+    <% end %>
+    <%= if Enum.at(@state.play_order, @state.turn) == player do %>
+      Current Turn |
     <% end %>
   </h2>
   <span>

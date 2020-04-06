@@ -39,6 +39,13 @@ defmodule YookerWeb.GameLive do
       new_state
     end
 
+    # TODO improve this
+    if length(List.flatten(Map.values(new_state.tricks_taken))) == 5 do
+      State.score_hand(new_state)
+    else
+      new_state
+    end
+
     {:noreply, assign(socket, state: new_state)}
   end
 end

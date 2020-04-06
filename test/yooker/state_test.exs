@@ -129,7 +129,7 @@ defmodule Yooker.StateTest do
     end
   end
 
-	describe "score_hand/1" do
+	describe "score_trick/1" do
 		test "low trump beats all other cards" do
       state = %State{
         table: %{
@@ -241,4 +241,62 @@ defmodule Yooker.StateTest do
       assert length(Map.get(tricks_taken, :d)) == 0
 		end
 	end
+
+	describe "score_hand/1" do
+    test "team that called trump gets 1 point for getting 3 or 4 tricks" do
+      state = %State{
+        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}], d: [%{}, %{}]}, # 3 tricks
+        score: %{ac: 3, bd: 3},
+        trump_selector: :a
+      }
+
+      %State{score: new_score} = State.score_hand(state)
+      assert Map.get(new_score, :ac) == 4
+      assert Map.get(new_score, :bd) == 3
+
+      state = %State{
+        tricks_taken: %{a: [%{}, %{}, %{}], b: [], c: [%{}], d: [%{}]}, # 3 tricks
+        score: %{ac: 3, bd: 3},
+        trump_selector: :c
+      }
+
+      %State{score: new_score} = State.score_hand(state)
+      assert Map.get(new_score, :ac) == 4
+      assert Map.get(new_score, :bd) == 3
+    end
+
+    test "team that called trump gets 2 points for getting 5 tricks" do
+      state = %State{
+        tricks_taken: %{a: [%{}, %{}, %{}], b: [], c: [%{}, %{}], d: []}, # 3 tricks
+        score: %{ac: 3, bd: 3},
+        trump_selector: :c
+      }
+
+      %State{score: new_score} = State.score_hand(state)
+      assert Map.get(new_score, :ac) == 5
+      assert Map.get(new_score, :bd) == 3
+    end
+
+    test "team that didn't call trump gets 2 points for 3-5 tricks" do
+      state = %State{
+        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}], d: [%{}, %{}]}, # 3 tricks
+        score: %{ac: 3, bd: 3},
+        trump_selector: :b
+      }
+
+      %State{score: new_score} = State.score_hand(state)
+      assert Map.get(new_score, :ac) == 5
+      assert Map.get(new_score, :bd) == 3
+
+      state = %State{
+        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}, %{}, %{}], d: []}, # 3 tricks
+        score: %{ac: 3, bd: 3},
+        trump_selector: :b
+      }
+
+      %State{score: new_score} = State.score_hand(state)
+      assert Map.get(new_score, :ac) == 5
+      assert Map.get(new_score, :bd) == 3
+    end
+  end
 end
