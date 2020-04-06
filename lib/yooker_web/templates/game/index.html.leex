@@ -40,6 +40,10 @@
       Dealer
     <% end %>
   </h2>
+  <span>
+    Tricks Taken:
+    <%= length(Map.get(@state.tricks_taken, player)) %>
+  </span>
   <div class="hand">
     <%= for card <- hand do %>
       <%= render "_card.html", card: card, state: @state %>
@@ -75,3 +79,6 @@
 <% else %>
   <button disabled="disabled">Deal</button>
 <% end %>
+
+<h2>Debug:</h2>
+<%= inspect(@state) %>

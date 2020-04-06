@@ -17,6 +17,7 @@ defmodule Yooker.State do
     trump: nil,
     current_round: :deal, # todo - better name - TODO - can you add validators?
     table: %{a: nil, b: nil, c: nil, d: nil},
+    tricks_taken: %{a: [], b: [], c: [], d: []},
     score: %{ac: 0, bd: 0},
 
     dealer: :a, # TODO(bmchrist) randomize later
@@ -114,7 +115,7 @@ defmodule Yooker.State do
     new_table = %{table | current_player => card}
 
     round = if turn == 3 do # If everyone has played
-      :scoring # this just leads to play-card in game_live calling score_hand - could simplify logic
+      :scoring # this just leads to play-card in game_live calling score_trick - could simplify logic
     else # otherwise keep on with the same round
       round
     end
@@ -122,9 +123,9 @@ defmodule Yooker.State do
     %{state | player_hands: new_player_hands, table: new_table, turn: turn + 1, current_round: round}
   end
 
-  # Takes the table, what trump is, who led, and the score
+  # Takes the table, what trump is, who led, and the tricks taken
   # Finds the best card, gives a point to that team, clears the table, and passes turn to the winning player
-  def score_hand(%State{table: table, trump: trump, score: score, play_order: play_order} = state) do
+  def score_trick(%State{table: table, tricks_taken: tricks_taken, trump: trump, play_order: play_order} = state) do
 
     # Card led by the first player is the leading suit
     first_player = Enum.at(play_order, 0)
@@ -132,19 +133,12 @@ defmodule Yooker.State do
 
     best_player = Enum.at(play_order, get_best_player_index(table, play_order, 0, 1, suit_led, trump))
 
-    # TODO: this feel gnarly... clean up logic for updating score
-    # TODO: allow scoring 2 or 4 points in special cases
-    score = if best_player == :a or best_player == :c do
-      %{score | ac: score[:ac] + 1}
-    else
-      %{score | bd: score[:bd] + 1}
-    end
+    tricks_taken = %{tricks_taken | best_player => [table | Map.get(tricks_taken, best_player)]}
 
      play_order = get_next_hand_order(best_player)
 
-    # Return updated score, next turn, reset back to playing for new round, and clear the table
-    # TODO: store last trick in case people want to see it
-    %{state | score: score, play_order: play_order, turn: 0, current_round: :playing, table: %{a: nil, b: nil, c: nil, d: nil}}
+    # Return updated tricks taken list, next turn, reset back to playing for new round, and clear the table
+    %{state | tricks_taken: tricks_taken, play_order: play_order, turn: 0, current_round: :playing, table: %{a: nil, b: nil, c: nil, d: nil}}
   end
 
 
