@@ -8,6 +8,7 @@ defmodule YookerWeb.GameLive do
   end
 
   def handle_params(%{"name" => name} = _params, _url, socket) do
+    :ok = Phoenix.PubSub.subscribe(Yooker.PubSub, name)
     {:noreply, assign_game(socket, name)}
   end
 
@@ -47,21 +48,25 @@ defmodule YookerWeb.GameLive do
 
   def handle_event("deal", _event, %{assigns: %{name: name}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:deal})
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, name, :update)
     {:noreply, assign_game(socket)}
   end
 
   def handle_event("choose-trump", %{"suit" => suit}, %{assigns: %{name: name}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:choose_trump, suit})
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, name, :update)
     {:noreply, assign_game(socket)}
   end
 
   def handle_event("pass-trump", _event, %{assigns: %{name: name}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:pass_trump})
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, name, :update)
     {:noreply, assign_game(socket)}
   end
 
   def handle_event("play-card", %{"card" => card}, %{assigns: %{name: name}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:play_card, card})
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, name, :update)
     {:noreply, assign_game(socket)}
   end
 end
