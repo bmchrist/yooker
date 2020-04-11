@@ -129,7 +129,7 @@ defmodule Yooker.StateTest do
     end
   end
 
-	describe "score_hand/1" do
+	describe "score_trick/1" do
 		test "low trump beats all other cards" do
       state = %State{
         table: %{
@@ -139,13 +139,14 @@ defmodule Yooker.StateTest do
           d: "9♣"
         },
         trump: "♣",
-        score: %{ac: 0, bd: 0},
         play_order: [:a, :b, :c, :d]
       }
 
-      %State{score: score} = State.score_hand(state)
-      assert Map.get(score, :ac) == 0
-      assert Map.get(score, :bd) == 1
+      %State{tricks_taken: tricks_taken} = State.score_trick(state)
+      assert length(Map.get(tricks_taken, :a)) == 0
+      assert length(Map.get(tricks_taken, :b)) == 0
+      assert length(Map.get(tricks_taken, :c)) == 0
+      assert length(Map.get(tricks_taken, :d)) == 1
 		end
 
 		test "right bower beats higher face value trump" do
@@ -157,13 +158,14 @@ defmodule Yooker.StateTest do
           d: "J♣"
         },
         trump: "♣",
-        score: %{ac: 0, bd: 0},
         play_order: [:a, :b, :c, :d]
       }
 
-      %State{score: score} = State.score_hand(state)
-      assert Map.get(score, :ac) == 0
-      assert Map.get(score, :bd) == 1
+      %State{tricks_taken: tricks_taken} = State.score_trick(state)
+      assert length(Map.get(tricks_taken, :a)) == 0
+      assert length(Map.get(tricks_taken, :b)) == 0
+      assert length(Map.get(tricks_taken, :c)) == 0
+      assert length(Map.get(tricks_taken, :d)) == 1
 		end
 
 		test "right bower beats left bower" do
@@ -175,13 +177,14 @@ defmodule Yooker.StateTest do
           d: "A♣"
         },
         trump: "♣",
-        score: %{ac: 0, bd: 0},
         play_order: [:a, :b, :c, :d]
       }
 
-      %State{score: score} = State.score_hand(state)
-      assert Map.get(score, :ac) == 1
-      assert Map.get(score, :bd) == 0
+      %State{tricks_taken: tricks_taken} = State.score_trick(state)
+      assert length(Map.get(tricks_taken, :a)) == 0
+      assert length(Map.get(tricks_taken, :b)) == 0
+      assert length(Map.get(tricks_taken, :c)) == 1
+      assert length(Map.get(tricks_taken, :d)) == 0
 		end
 
 		test "left bower beats high trump" do
@@ -193,13 +196,14 @@ defmodule Yooker.StateTest do
           d: "A♣"
         },
         trump: "♣",
-        score: %{ac: 0, bd: 0},
         play_order: [:a, :b, :c, :d]
       }
 
-      %State{score: score} = State.score_hand(state)
-      assert Map.get(score, :ac) == 1
-      assert Map.get(score, :bd) == 0
+      %State{tricks_taken: tricks_taken} = State.score_trick(state)
+      assert length(Map.get(tricks_taken, :a)) == 0
+      assert length(Map.get(tricks_taken, :b)) == 0
+      assert length(Map.get(tricks_taken, :c)) == 1
+      assert length(Map.get(tricks_taken, :d)) == 0
 		end
 
 		test "low card led beats non trump" do
@@ -211,13 +215,14 @@ defmodule Yooker.StateTest do
           d: "K♥",
         },
         trump: "♣",
-        score: %{ac: 0, bd: 0},
         play_order: [:a, :b, :c, :d]
       }
 
-      %State{score: score} = State.score_hand(state)
-      assert Map.get(score, :ac) == 1
-      assert Map.get(score, :bd) == 0
+      %State{tricks_taken: tricks_taken} = State.score_trick(state)
+      assert length(Map.get(tricks_taken, :a)) == 1
+      assert length(Map.get(tricks_taken, :b)) == 0
+      assert length(Map.get(tricks_taken, :c)) == 0
+      assert length(Map.get(tricks_taken, :d)) == 0
 
       state = %State{
         table: %{
@@ -227,12 +232,71 @@ defmodule Yooker.StateTest do
           d: "K♥",
         },
         trump: "♣",
-        score: %{ac: 0, bd: 0},
         play_order: [:b, :c, :d, :a]
       }
-      %State{score: score} = State.score_hand(state)
-      assert Map.get(score, :ac) == 0
-      assert Map.get(score, :bd) == 1
+      %State{tricks_taken: tricks_taken} = State.score_trick(state)
+      assert length(Map.get(tricks_taken, :a)) == 0
+      assert length(Map.get(tricks_taken, :b)) == 1
+      assert length(Map.get(tricks_taken, :c)) == 0
+      assert length(Map.get(tricks_taken, :d)) == 0
 		end
 	end
+
+	describe "score_hand/1" do
+    test "team that called trump gets 1 point for getting 3 or 4 tricks" do
+      state = %State{
+        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}], d: [%{}, %{}]}, # 3 tricks
+        score: %{ac: 3, bd: 3},
+        trump_selector: :a
+      }
+
+      %State{score: new_score} = State.score_hand(state)
+      assert Map.get(new_score, :ac) == 4
+      assert Map.get(new_score, :bd) == 3
+
+      state = %State{
+        tricks_taken: %{a: [%{}, %{}, %{}], b: [], c: [%{}], d: [%{}]}, # 3 tricks
+        score: %{ac: 3, bd: 3},
+        trump_selector: :c
+      }
+
+      %State{score: new_score} = State.score_hand(state)
+      assert Map.get(new_score, :ac) == 4
+      assert Map.get(new_score, :bd) == 3
+    end
+
+    test "team that called trump gets 2 points for getting 5 tricks" do
+      state = %State{
+        tricks_taken: %{a: [%{}, %{}, %{}], b: [], c: [%{}, %{}], d: []}, # 3 tricks
+        score: %{ac: 3, bd: 3},
+        trump_selector: :c
+      }
+
+      %State{score: new_score} = State.score_hand(state)
+      assert Map.get(new_score, :ac) == 5
+      assert Map.get(new_score, :bd) == 3
+    end
+
+    test "team that didn't call trump gets 2 points for 3-5 tricks" do
+      state = %State{
+        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}], d: [%{}, %{}]}, # 3 tricks
+        score: %{ac: 3, bd: 3},
+        trump_selector: :b
+      }
+
+      %State{score: new_score} = State.score_hand(state)
+      assert Map.get(new_score, :ac) == 5
+      assert Map.get(new_score, :bd) == 3
+
+      state = %State{
+        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}, %{}, %{}], d: []}, # 3 tricks
+        score: %{ac: 3, bd: 3},
+        trump_selector: :b
+      }
+
+      %State{score: new_score} = State.score_hand(state)
+      assert Map.get(new_score, :ac) == 5
+      assert Map.get(new_score, :bd) == 3
+    end
+  end
 end
