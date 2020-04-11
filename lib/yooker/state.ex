@@ -5,7 +5,9 @@ defmodule Yooker.State do
 
   alias Yooker.State
 
-  use GenServer
+  use GenServer, restart: :transient
+
+  @timeout 600_000 # Times out if no interaction for ten minutes
 
   defstruct kitty: [],
     player_hands: %{a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
@@ -21,40 +23,39 @@ defmodule Yooker.State do
     turn: 0
 
   # ############
-  # Client
+  # Server
   # ############
 
   def start_link(options) do
     GenServer.start_link(__MODULE__, %State{}, options)
   end
 
-  @impl true
+  @impl GenServer
   def init(state) do
     {:ok, state}
   end
 
-  # TODO what does impl true do
-	@impl true
+  @impl GenServer
   def handle_call(:state, _from, state) do
     {:reply, state, state}
   end
 
-  @impl true
+  @impl GenServer
   def handle_cast({:deal}, state) do
     {:noreply, State.deal(state)}
   end
 
-  @impl true
+  @impl GenServer
   def handle_cast({:choose_trump, suit}, state) do
     {:noreply, State.choose_trump(state, suit)}
   end
 
-  @impl true
+  @impl GenServer
   def handle_cast({:pass_trump}, state) do
     {:noreply, State.advance_trump_selection(state)}
   end
 
-  @impl true
+  @impl GenServer
   def handle_cast({:play_card, card}, state) do
     new_state = State.play_card(state, card)
 
@@ -78,7 +79,7 @@ defmodule Yooker.State do
   end
 
   # ############
-  # Server
+  # Further functions..
   # ############
 
   # Currently not dealing according to proper euchre rules.. eg 3 2 3 2
