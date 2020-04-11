@@ -7,16 +7,26 @@ defmodule YookerWeb.GameLive do
     YookerWeb.GameView.render("index.html", assigns)
   end
 
-  def mount(_session, _params, socket) do # most guides don't list needing /3 (params) but does nto get called otherwise - look into this
+  def handle_params(%{"name" => name} = _params, _url, socket) do
+    {:noreply, assign_game(socket, name)}
+  end
+
+  def handle_params(_params, _uri, socket) do
 		name =
       ?a..?z
       |> Enum.take_random(6)
       |> List.to_string()
 
+    # Flying a little blind on logic for push_patch, etc -- need to understand this better
+    # TODO
     {:ok, _pid} =
       DynamicSupervisor.start_child(Yooker.GameSupervisor, {State, name: via_tuple(name)})
 
-    {:ok, assign_game(socket, name)}
+    # Push patch or push redirect? do I want to update the same liveview or mount another..?
+    {:noreply, push_patch(
+      socket,
+      to: YookerWeb.Router.Helpers.live_path(socket, YookerWeb.GameLive, name: name)
+    )}
   end
 
 	defp via_tuple(name) do
