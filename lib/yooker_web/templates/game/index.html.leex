@@ -1,3 +1,6 @@
+<h2>Your Player ID: <%= @pid %>
+<% player_has_assigned_seat = Enum.member?(Map.values(@game.player_assignments), @pid) %>
+
 <h2>Kitty</h2>
 <div class="hand">
   <%= for card <- @state.kitty do %>
@@ -36,15 +39,23 @@
 
 <%= for {player, hand} <- @state.player_hands do %>
   <h2>
-    Player <%= player %> | 
+    Player <%= player %> |
     <%= if @state.dealer == player do %>
-      Dealer | 
+      Dealer |
     <% end %>
     <%= if @state.trump_selector == player do %>
       Chose Trump |
     <% end %>
     <%= if Enum.at(@state.play_order, @state.turn) == player do %>
       Current Turn |
+    <% end %>
+    <% player_in_seat = Map.get(@game.player_assignments, player) %>
+    <%= if player_in_seat do %>
+      <%= player_in_seat %>
+    <% else %>
+      <%= if !player_has_assigned_seat do %>
+        <button phx-click="claim-seat" phx-value-seat="<%= player %>">Claim Seat</button>
+      <% end %>
     <% end %>
   </h2>
   <span>
@@ -74,8 +85,8 @@
 <%= if @state.current_round == :trump_select_round_two do %>
   <button phx-click="choose-trump" phx-value-suit="♠">♠</button>
   <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♦">♦</button>
-  <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♣">♣</button>
-  <button phx-click="choose-trump" phx-value-suit="♥">♥</button>
+  <button phx-click="choose-trump" phx-value-suit="♣">♣</button>
+  <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♥">♥</button>
 <% end %>
 
 <br/>

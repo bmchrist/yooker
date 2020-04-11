@@ -5,12 +5,8 @@ defmodule Yooker.State do
 
   alias Yooker.State
 
-  use GenServer, restart: :transient
-
-  @timeout 600_000 # Times out if no interaction for ten minutes
-
   defstruct kitty: [],
-    player_hands: %{a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
+    player_hands: %{a: [], b: [], c: [], d: [] },
     trump: nil,
     current_round: :deal, # todo - better name - TODO - can you add validators?
     table: %{a: nil, b: nil, c: nil, d: nil},
@@ -21,71 +17,6 @@ defmodule Yooker.State do
     dealer: :a, # TODO(bmchrist) randomize later
     play_order: [:b, :c, :d, :a],
     turn: 0
-
-  # ############
-  # Server
-  # ############
-
-  def start_link(options) do
-    GenServer.start_link(__MODULE__, %State{}, options)
-  end
-
-  @impl GenServer
-  def init(state) do
-    {:ok, state, @timeout}
-  end
-
-	@impl GenServer
-  def handle_info(:timeout, state) do
-    {:stop, :normal, state}
-  end
-
-  @impl GenServer
-  def handle_call(:state, _from, state) do
-    {:reply, state, state, @timeout}
-  end
-
-  @impl GenServer
-  def handle_cast({:deal}, state) do
-    {:noreply, State.deal(state), @timeout}
-  end
-
-  @impl GenServer
-  def handle_cast({:choose_trump, suit}, state) do
-    {:noreply, State.choose_trump(state, suit), @timeout}
-  end
-
-  @impl GenServer
-  def handle_cast({:pass_trump}, state) do
-    {:noreply, State.advance_trump_selection(state), @timeout}
-  end
-
-  @impl GenServer
-  def handle_cast({:play_card, card}, state) do
-    new_state = State.play_card(state, card)
-
-    # Doing this second function based on if statement feels a bit like a code smell... tbd -- TODO review
-    new_state = if new_state.current_round == :scoring do
-      State.score_trick(new_state)
-    else
-      new_state
-    end
-
-    # TODO improve this
-    # Also TODO - improve this comment - what specifically needs to be improved?
-    # Perhaps this whole concept of the controller-thing tracking this stuff - feels suboptimal
-    new_state = if length(List.flatten(Map.values(new_state.tricks_taken))) == 5 do
-      State.score_hand(new_state)
-    else
-      new_state
-    end
-
-    {:noreply, new_state, @timeout}
-  end
-
-  # ############
-  # Further functions..
-  # ############
 
   # Currently not dealing according to proper euchre rules.. eg 3 2 3 2
   # TODO(bmchrist): Follow Euchre rules :)
