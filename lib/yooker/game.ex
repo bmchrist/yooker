@@ -10,11 +10,8 @@ defmodule Yooker.Game do
 
   use GenServer, restart: :transient
 
-  @timeout 6_000_000 # Times out if no interaction for ten minutes
+  @timeout 6_000_000 # Times out if no interaction for 100 minutes
 
-  # ############
-  # Server
-  # ############
   def start_link(options) do
     GenServer.start_link(__MODULE__, %Game{}, options)
   end

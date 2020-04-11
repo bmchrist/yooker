@@ -1,5 +1,3 @@
-# TODO(bmchrist) how would I make a convenience such as getting the top card of the deck..)
-# TODO: make it's something like State.top_card(state) that just returns a card..?
 defmodule Yooker.State do
   require Logger
 
@@ -9,7 +7,7 @@ defmodule Yooker.State do
     player_hands: %{a: [], b: [], c: [], d: [] },
     trump: nil,
     current_round: :deal, # todo - better name - TODO - can you add validators?
-    table: %{a: nil, b: nil, c: nil, d: nil},
+  table: %{a: nil, b: nil, c: nil, d: nil},
     tricks_taken: %{a: [], b: [], c: [], d: []},
     score: %{ac: 0, bd: 0},
     trump_selector: nil,

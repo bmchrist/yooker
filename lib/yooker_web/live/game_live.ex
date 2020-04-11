@@ -60,7 +60,7 @@ defmodule YookerWeb.GameLive do
     |> assign_game()
   end
 
-  # TODO - this runs twice for every action taken in the browser - verify if that's needed..
+  # TODO - this runs twice for every action taken in the browser - figure out why and if that's needed.
   defp assign_game(%{assigns: %{name: name, pid: pid}} = socket) do
     game = %Game{state: state} = GenServer.call(via_tuple(name), :game)
     # TODO(bmchrist) figure out why we need to manually define the default layout)
