@@ -32,27 +32,32 @@ defmodule Yooker.State do
 
   @impl GenServer
   def init(state) do
-    {:ok, state}
+    {:ok, state, @timeout}
+  end
+
+	@impl GenServer
+  def handle_info(:timeout, state) do
+    {:stop, :normal, state}
   end
 
   @impl GenServer
   def handle_call(:state, _from, state) do
-    {:reply, state, state}
+    {:reply, state, state, @timeout}
   end
 
   @impl GenServer
   def handle_cast({:deal}, state) do
-    {:noreply, State.deal(state)}
+    {:noreply, State.deal(state), @timeout}
   end
 
   @impl GenServer
   def handle_cast({:choose_trump, suit}, state) do
-    {:noreply, State.choose_trump(state, suit)}
+    {:noreply, State.choose_trump(state, suit), @timeout}
   end
 
   @impl GenServer
   def handle_cast({:pass_trump}, state) do
-    {:noreply, State.advance_trump_selection(state)}
+    {:noreply, State.advance_trump_selection(state), @timeout}
   end
 
   @impl GenServer
@@ -75,7 +80,7 @@ defmodule Yooker.State do
       new_state
     end
 
-    {:noreply, new_state}
+    {:noreply, new_state, @timeout}
   end
 
   # ############
