@@ -1,11 +1,11 @@
+# TODO(bmchrist) how would I make a convenience such as getting the top card of the deck..)
+# TODO: make it's something like State.top_card(state) that just returns a card..?
 defmodule Yooker.State do
-  # todo -can I pass args by keywords in elixir in my private functions rather than just list of args?
   require Logger
 
   alias Yooker.State
 
-  # TODO(bmchrist) how would I make a convenience such as getting the top card of the deck..)
-  # TODO: make it's something like State.top_card(state) that just returns a card..?
+  use GenServer
 
   defstruct kitty: [],
     player_hands: %{a: [], b: [], c: [], d: [] }, # needs to be private..? or are these already by default?
@@ -19,6 +19,67 @@ defmodule Yooker.State do
     dealer: :a, # TODO(bmchrist) randomize later
     play_order: [:b, :c, :d, :a],
     turn: 0
+
+  # ############
+  # Client
+  # ############
+
+  def start_link(options) do
+    GenServer.start_link(__MODULE__, %State{}, options)
+  end
+
+  @impl true
+  def init(state) do
+    {:ok, state}
+  end
+
+  # TODO what does impl true do
+	@impl true
+  def handle_call(:state, _from, state) do
+    {:reply, state, state}
+  end
+
+  @impl true
+  def handle_cast({:deal}, state) do
+    {:noreply, State.deal(state)}
+  end
+
+  @impl true
+  def handle_cast({:choose_trump, suit}, state) do
+    {:noreply, State.choose_trump(state, suit)}
+  end
+
+  @impl true
+  def handle_cast({:pass_trump}, state) do
+    {:noreply, State.advance_trump_selection(state)}
+  end
+
+  @impl true
+  def handle_cast({:play_card, card}, state) do
+    new_state = State.play_card(state, card)
+
+    # Doing this second function based on if statement feels a bit like a code smell... tbd -- TODO review
+    new_state = if new_state.current_round == :scoring do
+      State.score_trick(new_state)
+    else
+      new_state
+    end
+
+    # TODO improve this
+    # Also TODO - improve this comment - what specifically needs to be improved?
+    # Perhaps this whole concept of the controller-thing tracking this stuff - feels suboptimal
+    new_state = if length(List.flatten(Map.values(new_state.tricks_taken))) == 5 do
+      State.score_hand(new_state)
+    else
+      new_state
+    end
+
+    {:noreply, new_state}
+  end
+
+  # ############
+  # Server
+  # ############
 
   # Currently not dealing according to proper euchre rules.. eg 3 2 3 2
   # TODO(bmchrist): Follow Euchre rules :)
