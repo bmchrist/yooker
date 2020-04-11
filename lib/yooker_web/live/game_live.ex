@@ -40,6 +40,8 @@ defmodule YookerWeb.GameLive do
     end
 
     # TODO improve this
+    # Also TODO - improve this comment - what specifically needs to be improved?
+    # Perhaps this whole concept of the controller-thing tracking this stuff - feels suboptimal
     new_state = if length(List.flatten(Map.values(new_state.tricks_taken))) == 5 do
       State.score_hand(new_state)
     else

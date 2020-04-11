@@ -22,7 +22,7 @@ defmodule Yooker.State do
 
   # Currently not dealing according to proper euchre rules.. eg 3 2 3 2
   # TODO(bmchrist): Follow Euchre rules :)
-  def deal(%State{} = state) do # TODO(bmchrist) do I need the state's whole def..? - perhaps only variables I need?
+  def deal(%State{} = state) do
     deck = [
       "9♠", "10♠", "J♠", "Q♠", "K♠", "A♠",
       "9♥", "10♥", "J♥", "Q♥", "K♥", "A♥",
