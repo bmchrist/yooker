@@ -69,4 +69,8 @@ defmodule YookerWeb.GameLive do
     :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, name, :update)
     {:noreply, assign_game(socket)}
   end
+
+  def handle_info(:update, socket) do
+    {:noreply, assign_game(socket)}
+  end
 end
