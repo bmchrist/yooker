@@ -9,7 +9,6 @@ defmodule Yooker.Game do
     player_assignments: %{a: nil, b: nil, c: nil, d: nil}
 
   use GenServer, restart: :transient
-
   @timeout 6_000_000 # Times out if no interaction for 100 minutes
 
   def start_link(options) do
@@ -43,40 +42,61 @@ defmodule Yooker.Game do
 
   @impl GenServer
   def handle_cast({:deal, pid}, %Game{state: state} = game) do
+    # Don't need to do server side check here if it's the current player's turn -- because it really
+    # doesn't matter whose turn it is
     {:noreply, %{game | state: State.deal(state)}, @timeout}
   end
 
   @impl GenServer
   def handle_cast({:choose_trump, suit, pid}, %Game{state: state} = game) do
-    {:noreply, %{game | state: State.choose_trump(state, suit)}, @timeout}
+    if is_players_turn?(game, pid) do
+      {:noreply, %{game | state: State.choose_trump(state, suit)}, @timeout}
+    else
+      {:noreply, game, @timeout}
+    end
   end
 
   @impl GenServer
   def handle_cast({:pass_trump, pid}, %Game{state: state} = game) do
-    {:noreply, %{game | state: State.advance_trump_selection(state)}, @timeout}
+    if is_players_turn?(game, pid) do
+      {:noreply, %{game | state: State.advance_trump_selection(state)}, @timeout}
+    else
+      {:noreply, game, @timeout}
+    end
   end
 
   @impl GenServer
   def handle_cast({:play_card, card, pid}, %Game{state: state} = game) do
-    new_state = State.play_card(state, card)
+    if is_players_turn?(game, pid) do
+      new_state = State.play_card(state, card)
 
-    # Doing this second function based on if statement feels a bit like a code smell... tbd -- TODO review
-    new_state = if new_state.current_round == :scoring do
-      State.score_trick(new_state)
+      # Doing this second function based on if statement feels a bit like a code smell... tbd -- TODO review
+      new_state = if new_state.current_round == :scoring do
+        State.score_trick(new_state)
+      else
+        new_state
+      end
+
+      # TODO improve this
+      # Also TODO - improve this comment - what specifically needs to be improved?
+      # Perhaps this whole concept of the controller-thing tracking this stuff - feels suboptimal
+      new_state = if length(List.flatten(Map.values(new_state.tricks_taken))) == 5 do
+        State.score_hand(new_state)
+      else
+        new_state
+      end
+
+      {:noreply, %{game | state: new_state}, @timeout}
     else
-      new_state
+      {:noreply, game, @timeout}
     end
-
-    # TODO improve this
-    # Also TODO - improve this comment - what specifically needs to be improved?
-    # Perhaps this whole concept of the controller-thing tracking this stuff - feels suboptimal
-    new_state = if length(List.flatten(Map.values(new_state.tricks_taken))) == 5 do
-      State.score_hand(new_state)
-    else
-      new_state
-    end
-
-    {:noreply, %{game | state: new_state}, @timeout}
   end
 
+  def player_has_assigned_seat?(%Game{player_assignments: player_assignments}, pid) do
+    Enum.member?(Map.values(player_assignments), pid)
+  end
+
+  def is_players_turn?(%Game{player_assignments: player_assignments, state: state}, pid) do
+    Map.get(player_assignments, State.current_turn(state)) == pid
+  end
 end

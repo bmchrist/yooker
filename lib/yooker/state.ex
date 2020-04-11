@@ -7,7 +7,7 @@ defmodule Yooker.State do
     player_hands: %{a: [], b: [], c: [], d: [] },
     trump: nil,
     current_round: :deal, # todo - better name - TODO - can you add validators?
-  table: %{a: nil, b: nil, c: nil, d: nil},
+    table: %{a: nil, b: nil, c: nil, d: nil},
     tricks_taken: %{a: [], b: [], c: [], d: []},
     score: %{ac: 0, bd: 0},
     trump_selector: nil,
@@ -75,7 +75,7 @@ defmodule Yooker.State do
   # Takes selection from client for trump. Sets trump and moves to Playing round
   # If round 1 expects no suit to be spcified as we're choosing
   # based on top card. On second round expects individual to choose a suit
-  def choose_trump(%State{kitty: kitty, current_round: current_round, turn: turn, play_order: play_order} = state, suit) do
+  def choose_trump(%State{kitty: kitty, current_round: current_round} = state, suit) do
     suit = if current_round == :trump_select_round_two do
       if suit == "" do
         Logger.error("No suit selected when suit selection needed")
@@ -89,13 +89,13 @@ defmodule Yooker.State do
       get_suit_of_card(List.first(kitty), nil)
     end
 
-    %{state | turn: 0, trump_selector: Enum.at(play_order, turn), trump: suit, current_round: :playing}
+    %{state | turn: 0, trump_selector: current_turn(state), trump: suit, current_round: :playing}
   end
 
   # Takes the card submitted, checks whose turn it is, ensures the is in their hand, and then plays it
-  def play_card(%State{player_hands: player_hands, play_order: play_order, turn: turn, table: table, current_round: round } = state, card) do
+  def play_card(%State{player_hands: player_hands, turn: turn, table: table, current_round: round } = state, card) do
     # Get current player's hand
-    current_player = Enum.at(play_order, turn)
+    current_player = current_turn(state)
     current_player_hand = Map.get(player_hands, current_player)
 
     if !State.can_play_card?(state, card) do
@@ -153,6 +153,7 @@ defmodule Yooker.State do
 
     # Card led by the first player is the leading suit
     first_player = Enum.at(play_order, 0)
+
     suit_led = get_suit_of_card(table[first_player], trump)
 
     best_player = Enum.at(play_order, get_best_player_index(table, play_order, 0, 1, suit_led, trump))
@@ -223,8 +224,8 @@ defmodule Yooker.State do
 
   # If it is the current player's turn and they are allowed to play the card
   # TODO - this is not super readable, and a little bug-prone. add tests and clean up
-  def can_play_card?(%State{player_hands: player_hands, trump: trump, play_order: play_order, turn: turn, current_round: current_round, table: table}, card) do
-    allowed_hand = Map.get(player_hands, Enum.at(play_order, turn))
+  def can_play_card?(%State{player_hands: player_hands, trump: trump, play_order: play_order, turn: turn, current_round: current_round, table: table} = state, card) do
+    allowed_hand = Map.get(player_hands, current_turn(state))
 
     current_round == :playing &&
       (
@@ -256,6 +257,10 @@ defmodule Yooker.State do
   def can_pass?(%State{current_round: current_round, turn: turn}) do
     current_round == :trump_select_round_one or
       (current_round == :trump_select_round_two and !(turn == 3)) # round two, the dealer must deal
+  end
+
+  def current_turn(%State{play_order: play_order, turn: turn}) do
+    Enum.at(play_order, turn)
   end
 
   defp get_next_hand_order(first_player) do
