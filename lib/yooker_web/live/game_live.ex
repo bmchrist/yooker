@@ -29,6 +29,8 @@ defmodule YookerWeb.GameLive do
   # No game - create a new one and assign the player
   def handle_params(_params, _uri, socket) do
 		game_name = generate_name()
+    # If this ends up generating a name that's already in use, it will fail. Could use Registry.lookup
+    # and loop until it doesn't find a match, but complication isn't worth it at this time
 
     {:ok, _pid} =
       DynamicSupervisor.start_child(Yooker.GameSupervisor, {Game, name: via_tuple(game_name)})
@@ -43,7 +45,6 @@ defmodule YookerWeb.GameLive do
   end
 
   defp generate_name() do
-    # TODO - no game name collision handling...
     ?a..?z
       |> Enum.take_random(6)
       |> List.to_string()
