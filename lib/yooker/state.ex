@@ -113,7 +113,7 @@ defmodule Yooker.State do
     end
   end
 
-  # Only called when discarding after picking up trump - let's the dealer discard a card after trump was selected
+  # Only called when discarding after picking up trump - let the dealer discard a card after trump was selected
   defp discard_card_to_kitty(%State{kitty: kitty, player_hands: player_hands} = state, card) do
     # Get current player's hand
     current_player = current_turn_player(state)
@@ -257,7 +257,7 @@ defmodule Yooker.State do
 
   # If it is the current player's turn and they are allowed to play the card
   # TODO - this is not super readable, and a little bug-prone. add tests and clean up
-  def can_play_card?(%State{player_hands: player_hands, trump: trump, play_order: play_order, turn: turn, current_round: current_round, table: table} = state, card) do
+  def can_play_card?(%State{dealer: dealer, player_hands: player_hands, trump: trump, play_order: play_order, turn: turn, current_round: current_round, table: table} = state, card) do
     cond do
       current_round == :playing ->
         allowed_hand = Map.get(player_hands, current_turn_player(state))
@@ -287,14 +287,15 @@ defmodule Yooker.State do
         )
 
       current_round == :dealer_discard ->
-        true #TODO
-
+        # that card has to be part of the dealer's hand
+        allowed_hand = Map.get(player_hands, dealer)
+        Enum.member?(allowed_hand, card)
       true -> false # all other rounds don't allow playing a card
     end
   end
 
   def show_top_card?(%State{current_round: current_round}) do
-    current_round == :trump_select_round_one or current_round == :trump_select_round_two
+    current_round == :trump_select_round_one
   end
 
   # Allows someone to pass if it's the first round. Allows everyone except dealer to pass on the second
