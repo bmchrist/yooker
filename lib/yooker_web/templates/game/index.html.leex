@@ -2,8 +2,10 @@
 
 <h2>Kitty</h2>
 <div class="hand">
-  <%= for card <- @state.kitty do %>
-    <%= render "_card.html", card: card, game: @game, pid: @pid %>
+  <% {top, remaining_kitty} = List.pop_at(@state.kitty, 0) %>
+  <%= render "_card.html", card: top, game: @game, pid: @pid %>
+  <%= for card <- remaining_kitty do %>
+    <%= render "_card_facedown.html" %>
   <% end %>
 </div>
 
@@ -21,22 +23,12 @@
   </p>
 <% end %>
 
-<h2>Top Card</h2>
-<div class="hand">
-  <%= if length(@state.kitty) > 0 do %>
-    <%= render "_card.html", card: List.first(@state.kitty), game: @game, pid: @pid %>
-    <span>
-      <%= if @state.current_round != :trump_select_round_one do %>
-        HIDDEN
-      <% end %>
-    </span>
-  <% end %>
-</div>
-
 <h2>Trump: <%= @state.trump %></h2>
 
 
 <%= for {player, hand} <- @state.player_hands do %>
+  <% player_in_this_seat = Map.get(@game.player_assignments, player) %>
+
   <h2>
     Player <%= player %> |
     <%= if @state.dealer == player do %>
@@ -48,7 +40,6 @@
     <%= if Enum.at(@state.play_order, @state.turn) == player do %>
       Current Turn |
     <% end %>
-    <% player_in_this_seat = Map.get(@game.player_assignments, player) %>
     <%= if player_in_this_seat do %>
       <%= player_in_this_seat %>
     <% else %>
@@ -57,13 +48,19 @@
       <% end %>
     <% end %>
   </h2>
+
   <span>
     Tricks Taken:
     <%= length(Map.get(@state.tricks_taken, player)) %>
   </span>
+
   <div class="hand">
-    <%= for card <- hand do %>
-      <%= render "_card.html", card: card, game: @game, pid: @pid %>
+      <%= for card <- hand do %>
+        <%= if player_in_this_seat == @pid do %>
+          <%= render "_card.html", card: card, game: @game, pid: @pid %>
+        <% else %>
+          <%= render "_card_facedown.html" %>
+        <% end %>
     <% end %>
   </div>
 <% end %>
