@@ -4,7 +4,7 @@
 <div class="hand">
   <% {top, remaining_kitty} = List.pop_at(@state.kitty, 0) %>
   <%= render "_card.html", card: top, game: @game, pid: @pid %>
-  <%= for card <- remaining_kitty do %>
+  <%= for _card <- remaining_kitty do %>
     <%= render "_card_facedown.html" %>
   <% end %>
 </div>

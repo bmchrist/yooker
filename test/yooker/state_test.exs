@@ -25,7 +25,7 @@ defmodule Yooker.StateTest do
 
       for {player, hand} <- player_hands do
         for card <- hand do
-          if player == Enum.at(play_order, turn) do
+          if player == State.current_turn_player(state) do
             #assert State.can_play_card?(state, card) == true
             # They might not be able to play all their cards - let's just focus on other hands
           else

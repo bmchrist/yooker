@@ -20,7 +20,7 @@ defmodule Yooker.Game do
     {:ok, game, @timeout}
   end
 
-	@impl GenServer
+  @impl GenServer
   def handle_info(:timeout, game) do
     {:stop, :normal, game}
   end
@@ -33,7 +33,7 @@ defmodule Yooker.Game do
   ##################################
   # Handle game actions from players
   ##################################
-  # TODO - some way to wrap these all in a check that player can actually play?
+  # TODO - some way to wrap these all in a check that player can actually play - rather than checking individually in each function?
   @impl GenServer
   def handle_cast({:claim_seat, seat, pid}, %Game{player_assignments: player_assignments} = game) do
     seat_atom = String.to_existing_atom(seat) # Atom for a,b,c,d should all already exist
@@ -41,7 +41,7 @@ defmodule Yooker.Game do
   end
 
   @impl GenServer
-  def handle_cast({:deal, pid}, %Game{state: state} = game) do
+  def handle_cast({:deal, _pid}, %Game{state: state} = game) do
     # Don't need to do server side check here if it's the current player's turn -- because it really
     # doesn't matter whose turn it is
     {:noreply, %{game | state: State.deal(state)}, @timeout}
@@ -97,6 +97,6 @@ defmodule Yooker.Game do
   end
 
   def is_players_turn?(%Game{player_assignments: player_assignments, state: state}, pid) do
-    Map.get(player_assignments, State.current_turn(state)) == pid
+    Map.get(player_assignments, State.current_turn_player(state)) == pid
   end
 end
