@@ -41,6 +41,13 @@ defmodule Yooker.Game do
   end
 
   @impl GenServer
+  def handle_cast({:reset_game}, %Game{state: state} = game) do
+    # Don't need to do server side check here if it's the current player's turn -- because it really
+    # doesn't matter whose turn it is
+    {:noreply, %{game | state: %State{}}, @timeout}
+  end
+
+  @impl GenServer
   def handle_cast({:deal, _pid}, %Game{state: state} = game) do
     # Don't need to do server side check here if it's the current player's turn -- because it really
     # doesn't matter whose turn it is

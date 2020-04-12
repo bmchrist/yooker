@@ -73,6 +73,12 @@ defmodule YookerWeb.GameLive do
   ##################################
   # Handle game actions from players
   ##################################
+  def handle_event("reset-game", _event, %{assigns: %{name: name, pid: pid}} = socket) do
+    :ok = GenServer.cast(via_tuple(name), {:reset_game})
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, name, :update)
+    {:noreply, assign_game(socket)}
+  end
+
   def handle_event("claim-seat", %{"seat" => seat}, %{assigns: %{name: name, pid: pid}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:claim_seat, seat, pid})
     :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, name, :update)

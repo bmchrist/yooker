@@ -2,12 +2,15 @@
 
 <h2>Kitty</h2>
 <div class="hand">
-  <% {top, remaining_kitty} = List.pop_at(@state.kitty, 0) %>
-  <%= if top do %>
-    <%= render "_card.html", card: top, game: @game, pid: @pid %>
-  <% end %>
-  <%= for _card <- remaining_kitty do %>
+  <%= if Yooker.State.show_top_card?(@state) do %>
+    <%= render "_card.html", card: List.first(@state.kitty), game: @game, pid: @pid %>
     <%= render "_card_facedown.html" %>
+    <%= render "_card_facedown.html" %>
+    <%= render "_card_facedown.html" %>
+  <% else %>
+    <%= for _card <- @state.kitty do %>
+      <%= render "_card_facedown.html" %>
+    <% end %>
   <% end %>
 </div>
 
@@ -98,3 +101,5 @@
 
 <h2>Debug:</h2>
 <%= inspect(@game) %>
+<br/>
+<button phx-click="reset-game">Reset Game</button>
