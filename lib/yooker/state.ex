@@ -148,7 +148,7 @@ defmodule Yooker.State do
       true -> raise "Invalid tricks for scoring"
     end
 
-    %{state | score: new_score, dealer: next_dealer, play_order: play_order, current_round: :deal, tricks_taken: %{a: [], b: [], c: [], d: []}}
+    %{state | trump_selector: nil, trump: nil, score: new_score, dealer: next_dealer, play_order: play_order, current_round: :deal, tricks_taken: %{a: [], b: [], c: [], d: []}}
   end
 
   # Takes the table, what trump is, who led, and the tricks taken
