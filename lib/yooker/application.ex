@@ -9,9 +9,9 @@ defmodule Yooker.Application do
     # List all child processes to be supervised
     children = [
       # Start the endpoint when the application starts
-      YookerWeb.Endpoint
-      # Starts a worker by calling: Yooker.Worker.start_link(arg)
-      # {Yooker.Worker, arg},
+      YookerWeb.Endpoint,
+      {Registry, keys: :unique, name: Yooker.GameRegistry},
+      {DynamicSupervisor, strategy: :one_for_one, name: Yooker.GameSupervisor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
