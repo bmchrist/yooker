@@ -34,10 +34,17 @@ defmodule Yooker.Game do
   # Handle game actions from players
   ##################################
   # TODO - some way to wrap these all in a check that player can actually play - rather than checking individually in each function?
+  # TODO - calling these just implementation of the interface but then doing actual logic in them feels a bit weird..
   @impl GenServer
   def handle_cast({:claim_seat, seat, pid}, %Game{player_assignments: player_assignments} = game) do
     seat_atom = String.to_existing_atom(seat) # Atom for a,b,c,d should all already exist
     {:noreply, %{game | player_assignments: %{player_assignments | seat_atom => pid}}, @timeout}
+  end
+
+  @impl GenServer
+  def handle_cast({:reset_game}, %Game{state: state} = game) do
+    # Resets the game
+    {:noreply, %{game | state: %State{}}, @timeout}
   end
 
   @impl GenServer
