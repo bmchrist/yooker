@@ -14,7 +14,7 @@
         <%= seat %>:
         <%= if player do %>
           <a href="<%= Routes.live_path(@socket, YookerWeb.GameLive, game: game_id, player: player) %>">
-            Join as <%= player %>
+            Take over seat as <%= player %>
           </a>
         <% else %>
           Seat Open
