@@ -4,22 +4,21 @@ defmodule YookerWeb.GameLiveTest do
 	require Logger
 
   setup do
-    {_result, %{redirect: %{to: route }}} = live(conn, "/")
-    assert String.match?(route, ~r/\/?game=[A-z]+/)
+    {_result, %{redirect: %{to: route }}} = live(build_conn(), "/game?player=tester")
+    %{path: _path, query: query} = URI.parse(route)
+    query_params = URI.query_decoder(query) |> Enum.into(%{})
 
-    game_name = String.split(route, "=") |> List.last()
+    game_name = Map.get(query_params, "game")
+    assert String.match?(game_name, ~r/[A-z]+/)
 
-    {_result, %{redirect: %{to: route }}} = live(conn, route)
-    assert String.match?(route, ~r/\/?game=[A-z]+&player=[A-z]+/)
-
-    {:ok, view, html} = live(conn, route)
+    {:ok, view, _html} = live(build_conn(), route)
     via_tuple = {:via, Registry, {Yooker.GameRegistry, game_name}}
 
     {:ok, view: view, via_tuple: via_tuple}
   end
 
-  test "deals cards", %{via_tuple: via_tuple, view: view} do
-    game = GenServer.call(via_tuple, :game)
-     # TODO
+  test "deals cards", %{via_tuple: via_tuple, view: _view} do
+    GenServer.call(via_tuple, :game)
+    # TODO doesn't actually check if we can deal cards - just ensures there's no errors during setup steps above right now
   end
 end
