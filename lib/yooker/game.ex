@@ -42,7 +42,7 @@ defmodule Yooker.Game do
   end
 
   @impl GenServer
-  def handle_cast({:reset_game}, %Game{state: state} = game) do
+  def handle_cast({:reset_game}, %Game{} = game) do
     # Resets the game
     {:noreply, %{game | state: %State{}}, @timeout}
   end

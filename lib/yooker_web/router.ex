@@ -9,18 +9,15 @@ defmodule YookerWeb.Router do
     plug :put_secure_browser_headers
   end
 
-  pipeline :api do
-    plug :accepts, ["json"]
+  scope "/", YookerWeb do
+    pipe_through :browser
+
+    live "/", LobbyLive
   end
 
-  scope "/", YookerWeb do
+  scope "/game", YookerWeb do
     pipe_through :browser
 
     live "/", GameLive
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", YookerWeb do
-  #   pipe_through :api
-  # end
 end

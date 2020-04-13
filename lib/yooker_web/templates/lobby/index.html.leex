@@ -1,0 +1,31 @@
+<h2>Create New Game</h2>
+<%= form_for :create_game, "#",  [phx_submit: :create_game], fn f -> %>
+  <%= text_input f, :player_name, required: true, placeholder: "your name..."%>
+  <%= error_tag f, :player_name %>
+  <%= submit "Create game" %>
+<% end %>
+
+<h2>Existing Games</h2>
+<%= for %{game: game, game_id: game_id} <- @games do %>
+  <h3><%= game_id %></h3>
+  <ul>
+    <%= for {seat, player} <- Map.get(game, :player_assignments) do %>
+      <li>
+        <%= seat %>:
+        <%= if player do %>
+          <a href="<%= Routes.live_path(@socket, YookerWeb.GameLive, game: game_id, player: player) %>">
+            Take over seat as <%= player %>
+          </a>
+        <% else %>
+          Seat Open
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+  <%= form_for :join_game, "#",  [phx_submit: :join_game], fn f -> %>
+		<%= text_input f, :game_id, hidden: true, value: game_id %>
+    <%= text_input f, :player_name, required: true, placeholder: "your name..."%>
+		<%= error_tag f, :player_name %>
+    <%= submit "Join as new player" %>
+  <% end %>
+<% end %>
