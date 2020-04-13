@@ -82,13 +82,13 @@ defmodule YookerWeb.GameLive do
   ##################################
   def handle_event("reset-game", _event, %{assigns: %{name: name}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:reset_game})
-    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game=" <> name, :update)
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game-" <> name, :update)
     {:noreply, assign_game(socket)}
   end
 
   def handle_event("claim-seat", %{"seat" => seat}, %{assigns: %{name: name, pid: pid}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:claim_seat, seat, pid})
-    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game=" <> name, :update)
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game-" <> name, :update)
     # Lobby lists who is currently in seat, let the lobby know to update their listing
     :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "lobby", :update)
     {:noreply, assign_game(socket)}
@@ -96,25 +96,25 @@ defmodule YookerWeb.GameLive do
 
   def handle_event("deal", _event, %{assigns: %{name: name, pid: pid}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:deal, pid})
-    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game=" <> name, :update)
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game-" <> name, :update)
     {:noreply, assign_game(socket)}
   end
 
   def handle_event("choose-trump", %{"suit" => suit}, %{assigns: %{name: name, pid: pid}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:choose_trump, suit, pid})
-    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game=" <> name, :update)
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game-" <> name, :update)
     {:noreply, assign_game(socket)}
   end
 
   def handle_event("pass-trump", _event, %{assigns: %{name: name, pid: pid}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:pass_trump, pid})
-    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game=" <> name, :update)
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game-" <> name, :update)
     {:noreply, assign_game(socket)}
   end
 
   def handle_event("play-card", %{"card" => card}, %{assigns: %{name: name, pid: pid}} = socket) do
     :ok = GenServer.cast(via_tuple(name), {:play_card, card, pid})
-    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game=" <> name, :update)
+    :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game-" <> name, :update)
     {:noreply, assign_game(socket)}
   end
 
