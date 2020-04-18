@@ -71,66 +71,63 @@ defmodule Yooker.State do
 
   # Moves to next player, and also checks if we need to move to round 2 selection (when card is placed
   # face down)
-  def advance_trump_selection(%State{turn: turn, current_round: current_round} = state) do
-    # if we're in trump selection rnd 1
-    # starts left of dealer
-    # if not dealer passing, just advance
-    # else if dealer passing, advance round
+  def advance_trump_selection(%State{turn: 3, current_round: :trump_select_round_one} = state) do
+    %{state | current_round: :trump_select_round_two, turn: 0}
+  end
 
-    # If we're advancing from turn 3, the dealer just passed. Move on to round 2 selection
-    {new_round, turn} =
-      if turn == 3 do
-        if current_round == :trump_select_round_one do
-          {:trump_select_round_two, 0}
-        else
-          # This should not happen as can_pass? will prevent dealer from passing in round two
-          Logger.error("Invalid round advancement")
-          {:error_round, 0}
-        end
-      else
-        {current_round, turn + 1}
-      end
+  def advance_trump_selection(%State{turn: 3} = state) do
+    # This should not happen as can_pass? will prevent dealer from passing in round two
+    Logger.error("Invalid round advancement")
 
-    %{state | current_round: new_round, turn: turn}
+    %{state | current_round: :error_round, turn: 0}
+  end
+
+  def advance_trump_selection(%State{turn: turn} = state) do
+    %{state | turn: turn + 1}
   end
 
   # Takes selection from client for trump. Sets trump and moves to Playing round
   # If round 1 expects no suit to be spcified as we're choosing
   # based on top card. On second round expects individual to choose a suit
+  def choose_trump(%State{current_round: :trump_select_round_two} = state, suit) do
+    # Round One -- use top card
+    if suit == "" do
+      Logger.error("No suit selected when suit selection needed")
+    end
+
+    %{
+      state
+      | turn: 0,
+        trump_selector: current_turn_player(state),
+        trump: suit,
+        current_round: :playing
+    }
+  end
+
   def choose_trump(
         %State{
           kitty: kitty,
           player_hands: player_hands,
-          current_round: current_round,
           dealer: dealer
         } = state,
         suit
       ) do
-    state = %{state | turn: 0, trump_selector: current_turn_player(state)}
-
-    # Round One -- use top card
-    if current_round == :trump_select_round_two do
-      if suit == "" do
-        Logger.error("No suit selected when suit selection needed")
-      end
-
-      %{state | trump: suit, current_round: :playing}
-    else
-      if suit != "" do
-        Logger.error("Suit selected when incorrect round")
-      end
-
-      {top_card, new_kitty} = List.pop_at(kitty, 0)
-      new_player_hands = %{player_hands | dealer => [top_card | Map.get(player_hands, dealer)]}
-
-      %{
-        state
-        | kitty: new_kitty,
-          trump: get_suit_of_card(top_card, nil),
-          player_hands: new_player_hands,
-          current_round: :dealer_discard
-      }
+    if suit != "" do
+      Logger.error("Suit selected when incorrect round")
     end
+
+    {top_card, new_kitty} = List.pop_at(kitty, 0)
+    new_player_hands = %{player_hands | dealer => [top_card | Map.get(player_hands, dealer)]}
+
+    %{
+      state
+      | turn: 0,
+        trump_selector: current_turn_player(state),
+        kitty: new_kitty,
+        trump: get_suit_of_card(top_card, nil),
+        player_hands: new_player_hands,
+        current_round: :dealer_discard
+    }
   end
 
   # Allows playing a card to the table, or discarding a card if you're the dealer and have picked up trump
@@ -298,36 +295,43 @@ defmodule Yooker.State do
          competitor_index,
          suit_led,
          trump
+       )
+       when competitor_index <= 3 do
+    if first_card_wins?(
+         table[Enum.at(play_order, best_player_index)],
+         table[Enum.at(play_order, competitor_index)],
+         suit_led,
+         trump
        ) do
-    if competitor_index <= 3 do
-      if first_card_wins?(
-           table[Enum.at(play_order, best_player_index)],
-           table[Enum.at(play_order, competitor_index)],
-           suit_led,
-           trump
-         ) do
-        get_best_player_index(
-          table,
-          play_order,
-          best_player_index,
-          competitor_index + 1,
-          suit_led,
-          trump
-        )
-      else
-        get_best_player_index(
-          table,
-          play_order,
-          competitor_index,
-          competitor_index + 1,
-          suit_led,
-          trump
-        )
-      end
+      get_best_player_index(
+        table,
+        play_order,
+        best_player_index,
+        competitor_index + 1,
+        suit_led,
+        trump
+      )
     else
-      best_player_index
+      get_best_player_index(
+        table,
+        play_order,
+        competitor_index,
+        competitor_index + 1,
+        suit_led,
+        trump
+      )
     end
   end
+
+  defp get_best_player_index(
+         _table,
+         _play_order,
+         best_player_index,
+         _competitor_index,
+         _suit_led,
+         _trump
+       ),
+       do: best_player_index
 
   # Checks which card is the strongest - returns true if it's the first one
   # Assumes both cards are legal plays
