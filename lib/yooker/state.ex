@@ -443,15 +443,11 @@ defmodule Yooker.State do
     end
   end
 
-  defp get_next_hand_order(first_player) do
-    case first_player do
-      :a -> [:a, :b, :c, :d]
-      :b -> [:b, :c, :d, :a]
-      :c -> [:c, :d, :a, :b]
-      :d -> [:d, :a, :b, :c]
-      true -> raise "Unexpected first_player for play order"
-    end
-  end
+  defp get_next_hand_order(:a), do: [:a, :b, :c, :d]
+  defp get_next_hand_order(:b), do: [:b, :c, :d, :a]
+  defp get_next_hand_order(:c), do: [:c, :d, :a, :b]
+  defp get_next_hand_order(:d), do: [:d, :a, :b, :c]
+  defp get_next_hand_order(true), do: raise("Unexpected first_player for play order")
 
   # Returns the face value of the card
   def get_value_of_card(card) do
@@ -470,14 +466,10 @@ defmodule Yooker.State do
     end
   end
 
-  defp get_left_suit(suit) do
-    case suit do
-      "♠" -> "♣"
-      "♣" -> "♠"
-      "♥" -> "♦"
-      "♦" -> "♥"
-    end
-  end
+  defp get_left_suit("♠"), do: "♣"
+  defp get_left_suit("♣"), do: "♠"
+  defp get_left_suit("♥"), do: "♦"
+  defp get_left_suit("♦"), do: "♥"
 
   defp face_value("A"), do: 14
   defp face_value("K"), do: 13
