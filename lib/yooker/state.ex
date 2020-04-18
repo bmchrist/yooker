@@ -135,22 +135,23 @@ defmodule Yooker.State do
 
   # Allows playing a card to the table, or discarding a card if you're the dealer and have picked up trump
   # Will also ensure the cad can be played /discarded
-  def play_card(%State{current_round: current_round} = state, card) do
+  def play_card(%State{current_round: :playing} = state, card) do
     if !State.can_play_card?(state, card) do
       raise "Card selected cannot be played!"
     end
 
-    cond do
-      current_round == :playing ->
-        play_card_to_table(state, card)
-
-      current_round == :dealer_discard ->
-        discard_card_to_kitty(state, card)
-
-      true ->
-        raise "Invalid round for play_card to be called during"
-    end
+    play_card_to_table(state, card)
   end
+
+  def play_card(%State{current_round: :dealer_discard} = state, card) do
+    if !State.can_play_card?(state, card) do
+      raise "Card selected cannot be played!"
+    end
+
+    discard_card_to_kitty(state, card)
+  end
+
+  def play_card(%State{}, _card), do: raise("Invalid round for play_card to be called during")
 
   # Only called when discarding after picking up trump - let the dealer discard a card after trump was selected
   defp discard_card_to_kitty(%State{kitty: kitty, player_hands: player_hands} = state, card) do
@@ -374,51 +375,53 @@ defmodule Yooker.State do
   # TODO - this is not super readable, and a little bug-prone. add tests and clean up
   def can_play_card?(
         %State{
-          dealer: dealer,
           player_hands: player_hands,
           trump: trump,
           play_order: play_order,
           turn: turn,
-          current_round: current_round,
+          current_round: :playing,
           table: table
         } = state,
         card
       ) do
-    cond do
-      current_round == :playing ->
-        allowed_hand = Map.get(player_hands, current_turn_player(state))
+    allowed_hand = Map.get(player_hands, current_turn_player(state))
 
-        # and that card has to be part of the current player's hand
-        Enum.member?(allowed_hand, card) &&
-          (
-            suit_led =
-              if turn > 0 do
-                get_suit_of_card(Map.get(table, Enum.at(play_order, 0)), trump)
-              else
-                nil
-              end
+    # and that card has to be part of the current player's hand
+    Enum.member?(allowed_hand, card) &&
+      (
+        suit_led =
+          if turn > 0 do
+            get_suit_of_card(Map.get(table, Enum.at(play_order, 0)), trump)
+          else
+            nil
+          end
 
-            suits_in_hand = for card <- allowed_hand, do: get_suit_of_card(card, trump)
+        suits_in_hand = for card <- allowed_hand, do: get_suit_of_card(card, trump)
 
-            # Card follows suit?
-            # The first card can be anything
-            # If this card's suit matches the suit of the card of the first player
-            # Or if the player cannot follow suit, they can play anything
-            turn == 0 or
-              get_suit_of_card(card, trump) == suit_led or
-              !Enum.member?(suits_in_hand, suit_led)
-          )
-
-      current_round == :dealer_discard ->
-        # that card has to be part of the dealer's hand
-        allowed_hand = Map.get(player_hands, dealer)
-        Enum.member?(allowed_hand, card)
-
-      # all other rounds don't allow playing a card
-      true ->
-        false
-    end
+        # Card follows suit?
+        # The first card can be anything
+        # If this card's suit matches the suit of the card of the first player
+        # Or if the player cannot follow suit, they can play anything
+        turn == 0 or
+          get_suit_of_card(card, trump) == suit_led or
+          !Enum.member?(suits_in_hand, suit_led)
+      )
   end
+
+  def can_play_card?(
+        %State{
+          dealer: dealer,
+          player_hands: player_hands,
+          current_round: :dealer_discard
+        },
+        card
+      ) do
+    # that card has to be part of the dealer's hand
+    allowed_hand = Map.get(player_hands, dealer)
+    Enum.member?(allowed_hand, card)
+  end
+
+  def can_play_card?(%State{}, _card), do: false
 
   def show_top_card?(%State{current_round: current_round}) do
     current_round == :trump_select_round_one
@@ -431,16 +434,10 @@ defmodule Yooker.State do
       (current_round == :trump_select_round_two and !(turn == 3))
   end
 
-  def current_turn_player(%State{
-        current_round: current_round,
-        play_order: play_order,
-        turn: turn,
-        dealer: dealer
-      }) do
-    cond do
-      current_round == :dealer_discard -> dealer
-      true -> Enum.at(play_order, turn)
-    end
+  def current_turn_player(%State{current_round: :dealer_discard, dealer: dealer}), do: dealer
+
+  def current_turn_player(%State{play_order: play_order, turn: turn}) do
+    Enum.at(play_order, turn)
   end
 
   defp get_next_hand_order(:a), do: [:a, :b, :c, :d]
