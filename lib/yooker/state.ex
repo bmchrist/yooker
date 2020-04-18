@@ -343,14 +343,6 @@ defmodule Yooker.State do
 
     # Face Values
     # TODO would cond do be more efficient here?
-    face_value = %{
-      "A" => 14,
-      "K" => 13,
-      "Q" => 12,
-      "J" => 11,
-      "10" => 10,
-      "9" => 9
-    }
 
     # Trump Values (see multiplier below)
     # JRight  11000
@@ -375,7 +367,7 @@ defmodule Yooker.State do
         true -> 0
       end
 
-    multiplier * Map.get(face_value, value)
+    multiplier * face_value(value)
   end
 
   # If it is the current player's turn and they are allowed to play the card
@@ -486,4 +478,11 @@ defmodule Yooker.State do
       "♦" -> "♥"
     end
   end
+
+  defp face_value("A"), do: 14
+  defp face_value("K"), do: 13
+  defp face_value("Q"), do: 12
+  defp face_value("J"), do: 11
+  defp face_value("10"), do: 10
+  defp face_value("9"), do: 9
 end
