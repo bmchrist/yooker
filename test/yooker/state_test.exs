@@ -1,7 +1,7 @@
 defmodule Yooker.StateTest do
-	alias Yooker.State
-	use ExUnit.Case
-	doctest Yooker.State
+  alias Yooker.State
+  use ExUnit.Case
+  doctest Yooker.State
   require Logger
 
   describe "can_play_card/2" do
@@ -13,8 +13,9 @@ defmodule Yooker.StateTest do
         c: ["J♣", "Q♠", "A♦", "9♥", "J♠"],
         d: ["Q♦", "Q♣", "K♥", "10♦", "K♠"]
       }
-      turn =  0
-      play_order = [:a,:b,:c, :d]
+
+      turn = 0
+      play_order = [:a, :b, :c, :d]
 
       state = %State{
         player_hands: player_hands,
@@ -26,7 +27,7 @@ defmodule Yooker.StateTest do
       for {player, hand} <- player_hands do
         for card <- hand do
           if player == State.current_turn_player(state) do
-            #assert State.can_play_card?(state, card) == true
+            # assert State.can_play_card?(state, card) == true
             # They might not be able to play all their cards - let's just focus on other hands
           else
             assert State.can_play_card?(state, card) == false
@@ -36,14 +37,18 @@ defmodule Yooker.StateTest do
     end
 
     test "can play any card if they lead" do
-      player_hands = %{ # this can be randomized, as can deck
+      # this can be randomized, as can deck
+      player_hands = %{
         a: ["9♠", "Q♥", "A♠", "10♣", "K♦"],
         b: ["10♥", "J♦", "A♥", "A♣", "9♣"],
         c: ["J♣", "Q♠", "A♦", "9♥", "J♠"],
         d: ["Q♦", "Q♣", "K♥", "10♦", "K♠"]
       }
-      turn =  0 # first turn
-      play_order = [:a,:b,:c, :d] # and A is first turn
+
+      # first turn
+      turn = 0
+      # and A is first turn
+      play_order = [:a, :b, :c, :d]
 
       state = %State{
         player_hands: player_hands,
@@ -64,14 +69,17 @@ defmodule Yooker.StateTest do
         c: ["J♣", "J♦", "A♦", "9♥", "J♠"],
         d: ["Q♦", "Q♣", "K♥", "10♦", "K♠"]
       }
+
       table = %{
         a: "10♣",
         b: nil,
         c: nil,
         d: nil
       }
-      turn =  1 # player a has already led a 10 of clubs
-      play_order = [:a,:b,:c, :d]
+
+      # player a has already led a 10 of clubs
+      turn = 1
+      play_order = [:a, :b, :c, :d]
 
       state = %State{
         player_hands: player_hands,
@@ -99,16 +107,18 @@ defmodule Yooker.StateTest do
     test "left bower is treated like trump suit for following" do
       player_hands = %{
         a: ["Q♥", "J♦", "9♠", "K♦", "10♣"],
-        b: ["10♥","A♥", "A♣", "9♣"],
+        b: ["10♥", "A♥", "A♣", "9♣"],
         c: ["J♣", "A♠", "A♦", "9♥", "J♠"],
         d: ["Q♦", "Q♣", "K♥", "10♦", "K♠"]
       }
+
       table = %{
         a: nil,
         b: "Q♠",
         c: nil,
         d: nil
       }
+
       turn = 1
       play_order = [:b, :c, :d, :a]
 
@@ -129,8 +139,8 @@ defmodule Yooker.StateTest do
     end
   end
 
-	describe "score_trick/1" do
-		test "low trump beats all other cards" do
+  describe "score_trick/1" do
+    test "low trump beats all other cards" do
       state = %State{
         table: %{
           a: "A♠",
@@ -147,9 +157,9 @@ defmodule Yooker.StateTest do
       assert length(Map.get(tricks_taken, :b)) == 0
       assert length(Map.get(tricks_taken, :c)) == 0
       assert length(Map.get(tricks_taken, :d)) == 1
-		end
+    end
 
-		test "right bower beats higher face value trump" do
+    test "right bower beats higher face value trump" do
       state = %State{
         table: %{
           a: "A♠",
@@ -166,9 +176,9 @@ defmodule Yooker.StateTest do
       assert length(Map.get(tricks_taken, :b)) == 0
       assert length(Map.get(tricks_taken, :c)) == 0
       assert length(Map.get(tricks_taken, :d)) == 1
-		end
+    end
 
-		test "right bower beats left bower" do
+    test "right bower beats left bower" do
       state = %State{
         table: %{
           a: "A♠",
@@ -185,9 +195,9 @@ defmodule Yooker.StateTest do
       assert length(Map.get(tricks_taken, :b)) == 0
       assert length(Map.get(tricks_taken, :c)) == 1
       assert length(Map.get(tricks_taken, :d)) == 0
-		end
+    end
 
-		test "left bower beats high trump" do
+    test "left bower beats high trump" do
       state = %State{
         table: %{
           a: "A♠",
@@ -204,15 +214,15 @@ defmodule Yooker.StateTest do
       assert length(Map.get(tricks_taken, :b)) == 0
       assert length(Map.get(tricks_taken, :c)) == 1
       assert length(Map.get(tricks_taken, :d)) == 0
-		end
+    end
 
-		test "low card led beats non trump" do
+    test "low card led beats non trump" do
       state = %State{
         table: %{
           a: "9♠",
           b: "A♥",
           c: "A♦",
-          d: "K♥",
+          d: "K♥"
         },
         trump: "♣",
         play_order: [:a, :b, :c, :d]
@@ -229,23 +239,25 @@ defmodule Yooker.StateTest do
           a: "A♥",
           b: "9♠",
           c: "A♦",
-          d: "K♥",
+          d: "K♥"
         },
         trump: "♣",
         play_order: [:b, :c, :d, :a]
       }
+
       %State{tricks_taken: tricks_taken} = State.score_trick(state)
       assert length(Map.get(tricks_taken, :a)) == 0
       assert length(Map.get(tricks_taken, :b)) == 1
       assert length(Map.get(tricks_taken, :c)) == 0
       assert length(Map.get(tricks_taken, :d)) == 0
-		end
-	end
+    end
+  end
 
-	describe "score_hand/1" do
+  describe "score_hand/1" do
     test "team that called trump gets 1 point for getting 3 or 4 tricks" do
       state = %State{
-        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}], d: [%{}, %{}]}, # 3 tricks
+        # 3 tricks
+        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}], d: [%{}, %{}]},
         score: %{ac: 3, bd: 3},
         trump_selector: :a
       }
@@ -255,7 +267,8 @@ defmodule Yooker.StateTest do
       assert Map.get(new_score, :bd) == 3
 
       state = %State{
-        tricks_taken: %{a: [%{}, %{}, %{}], b: [], c: [%{}], d: [%{}]}, # 3 tricks
+        # 3 tricks
+        tricks_taken: %{a: [%{}, %{}, %{}], b: [], c: [%{}], d: [%{}]},
         score: %{ac: 3, bd: 3},
         trump_selector: :c
       }
@@ -267,7 +280,8 @@ defmodule Yooker.StateTest do
 
     test "team that called trump gets 2 points for getting 5 tricks" do
       state = %State{
-        tricks_taken: %{a: [%{}, %{}, %{}], b: [], c: [%{}, %{}], d: []}, # 3 tricks
+        # 3 tricks
+        tricks_taken: %{a: [%{}, %{}, %{}], b: [], c: [%{}, %{}], d: []},
         score: %{ac: 3, bd: 3},
         trump_selector: :c
       }
@@ -279,7 +293,8 @@ defmodule Yooker.StateTest do
 
     test "team that didn't call trump gets 2 points for 3-5 tricks" do
       state = %State{
-        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}], d: [%{}, %{}]}, # 3 tricks
+        # 3 tricks
+        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}], d: [%{}, %{}]},
         score: %{ac: 3, bd: 3},
         trump_selector: :b
       }
@@ -289,7 +304,8 @@ defmodule Yooker.StateTest do
       assert Map.get(new_score, :bd) == 3
 
       state = %State{
-        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}, %{}, %{}], d: []}, # 3 tricks
+        # 3 tricks
+        tricks_taken: %{a: [%{}, %{}], b: [], c: [%{}, %{}, %{}], d: []},
         score: %{ac: 3, bd: 3},
         trump_selector: :b
       }

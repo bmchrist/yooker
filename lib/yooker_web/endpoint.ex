@@ -10,8 +10,7 @@ defmodule YookerWeb.Endpoint do
     signing_salt: "grP7JfbM"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket,
-    websocket: [connect_info: [session: @session_options]]
+  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
 
   socket "/socket", YookerWeb.UserSocket,
     websocket: true,
