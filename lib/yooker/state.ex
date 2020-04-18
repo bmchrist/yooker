@@ -17,37 +17,37 @@ defmodule Yooker.State do
             play_order: [:b, :c, :d, :a],
             turn: 0
 
+  @deck [
+    "9♠",
+    "10♠",
+    "J♠",
+    "Q♠",
+    "K♠",
+    "A♠",
+    "9♥",
+    "10♥",
+    "J♥",
+    "Q♥",
+    "K♥",
+    "A♥",
+    "9♣",
+    "10♣",
+    "J♣",
+    "Q♣",
+    "K♣",
+    "A♣",
+    "9♦",
+    "10♦",
+    "J♦",
+    "Q♦",
+    "K♦",
+    "A♦"
+  ]
+
   # Currently not dealing according to proper euchre rules.. eg 3 2 3 2
   # TODO(bmchrist): Follow Euchre rules :)
   def deal(%State{} = state) do
-    deck = [
-      "9♠",
-      "10♠",
-      "J♠",
-      "Q♠",
-      "K♠",
-      "A♠",
-      "9♥",
-      "10♥",
-      "J♥",
-      "Q♥",
-      "K♥",
-      "A♥",
-      "9♣",
-      "10♣",
-      "J♣",
-      "Q♣",
-      "K♣",
-      "A♣",
-      "9♦",
-      "10♦",
-      "J♦",
-      "Q♦",
-      "K♦",
-      "A♦"
-    ]
-
-    deck = Enum.shuffle(deck)
+    deck = Enum.shuffle(@deck)
 
     hands = Enum.chunk_every(deck, 5)
 
