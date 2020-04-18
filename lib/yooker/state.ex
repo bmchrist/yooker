@@ -342,9 +342,6 @@ defmodule Yooker.State do
     suit = get_suit_of_card(card, nil)
     value = get_value_of_card(card)
 
-    # Face Values
-    # TODO would cond do be more efficient here?
-
     # Trump Values (see multiplier below)
     # JRight  11000
     # JLeft   1100
