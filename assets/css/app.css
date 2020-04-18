@@ -19,6 +19,7 @@ body, h1 {
   margin-right: 8px;
   margin-bottom: 8px;
   position: relative;
+  background-color: white;
 }
 
 .card-facedown {
@@ -124,3 +125,43 @@ button{
 button:hover {
   background-color: #dedede;
 }
+
+.yours {
+  position: absolute;
+  width: 100%;
+  bottom: 0px;
+  background-color: #dedede;
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.stacked {
+  display: flex; */
+  position: relative;
+  height: 160px;
+  width: 216px;
+  display: inline-block;
+}
+
+.stacked > .card {
+  position: absolute;
+}
+
+.stacked:first-child{
+  left:0px;
+}
+.stacked::nth-of-type(2){
+  left:24px;
+}
+.stacked::nth-of-type(3){
+  left:48px;
+}
+.stacked::nth-of-type(4){
+  left:72px;
+}
+.stacked::nth-of-type(5){
+  left:96px;
+}
+
+
