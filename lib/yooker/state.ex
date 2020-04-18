@@ -424,16 +424,16 @@ defmodule Yooker.State do
 
   def can_play_card?(%State{}, _card), do: false
 
-  def show_top_card?(%State{current_round: current_round}) do
-    current_round == :trump_select_round_one
-  end
+  def show_top_card?(%State{current_round: :trump_select_round_one}), do: true
+  def show_top_card?(%State{}), do: false
 
   # Allows someone to pass if it's the first round. Allows everyone except dealer to pass on the second
-  def can_pass?(%State{current_round: current_round, turn: turn}) do
-    # round two, the dealer must deal
-    current_round == :trump_select_round_one or
-      (current_round == :trump_select_round_two and !(turn == 3))
-  end
+  def can_pass?(%State{current_round: :trump_select_round_one}), do: true
+
+  def can_pass?(%State{current_round: :trump_select_round_two, turn: turn}) when turn != 3,
+    do: true
+
+  def can_pass?(%State{}), do: false
 
   def current_turn_player(%State{current_round: :dealer_discard, dealer: dealer}), do: dealer
 
