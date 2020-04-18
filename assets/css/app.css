@@ -1,4 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Kurale&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@400;700&display=swap');
+
+body, h1 {
+  margin:0px;
+  font-family: 'Baloo Paaji 2', cursive;
+}
 
 .card {
   display: inline-block;
@@ -16,7 +22,13 @@
 }
 
 .card-facedown {
-  background-color: #ccc;
+  background-color:white;
+  background-image: linear-gradient(45deg, rgba(200,0,0,.5) 50%, transparent 50%),
+  linear-gradient(rgba(200,0,0,.5) 50%, transparent 50%);
+  background-size:10px 10px;
+  font-family: 'Kurale', serif;
+  /* background-image: url("https://i.ibb.co/S6M6yTY/cardback-jordon.png");
+  background-size: cover; */
 }
 
 .card-value {
@@ -52,4 +64,63 @@
 
 .card.playable {
   border-color: green;
+}
+
+#game-container{
+  padding: 24px;
+}
+
+#top-bar {
+  display: flex;
+  height: 48px;
+  background-color: #f2f2f2;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: -16px;
+}
+
+#app-name{
+  display: inline-block;
+  font-family: 'Baloo Paaji 2', sans-serif;
+  font-size: 24px;
+  margin-left: 24px;
+}
+
+#player-id{
+  display: inline-block;
+  font-size: 16px;
+  margin-right: 24px;
+  font-weight: 400;
+}
+
+#current-round{
+  display: flex;
+  border: 1px solid #dedede;
+  justify-content: space-between;
+  padding: 12px 24px 12px 24px;
+  align-items: center;
+}
+
+#game-actions{
+  margin-left: 16px;
+}
+
+.hand .card{
+  vertical-align: top;
+}
+
+button{
+  background-color: #f2f2f2;
+  padding: 4px 16px 4px 16px;
+  border-radius: 3px;
+  font-size: 16px;
+  cursor: pointer;
+  font-family: 'Baloo Paaji 2', sans-serif;
+  font-weight: 700;
+  border: 1px solid #dedede;
+}
+
+button:hover {
+  background-color: #dedede;
 }

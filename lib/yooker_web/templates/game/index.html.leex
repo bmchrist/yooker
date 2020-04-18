@@ -1,103 +1,125 @@
-<h2>Your Player ID: <%= @pid %>
-
-<h2>Kitty</h2>
-<div class="hand">
-  <%= if Yooker.State.show_top_card?(@state) do %>
-    <%= render "_card.html", card: List.first(@state.kitty), game: @game, pid: @pid %>
-    <%= render "_card_facedown.html" %>
-    <%= render "_card_facedown.html" %>
-    <%= render "_card_facedown.html" %>
-  <% else %>
-    <%= for _card <- @state.kitty do %>
-      <%= render "_card_facedown.html" %>
-    <% end %>
-  <% end %>
+<div id="top-bar">
+  <h1 id="app-name">Yooker</h1>
+  <h2 id="player-id">Your Player ID: <%= @pid %>
 </div>
 
-<h2>Current Round <%= @state.current_round %></h2>
+<div id="current-round">
+  <div id="round">
+    <span>Current Round:</span>
+    <span><%= @state.current_round %></span>
+  </div>
 
-<h2>Score AC: <%= @state.score[:ac] %> BD: <%= @state.score[:bd] %></h2>
+  <div id="score">
+    Score AC: <%= @state.score[:ac] %> BD: <%= @state.score[:bd] %>
+  </div>
 
-<h2>Table</h2>
-<%= for {player, card} <- @state.table do %>
-  <p>
-    Player <%= player %>
-    <%= if card do %>
-      <%= render "_card.html", card: card, game: @game %>
-    <% end %>
-  </p>
-<% end %>
+  <div id="trump">Trump: <%= @state.trump %></div>
 
-<h2>Trump: <%= @state.trump %></h2>
-
-
-<%= for {player, hand} <- @state.player_hands do %>
-  <% player_in_this_seat = Map.get(@game.player_assignments, player) %>
-
-  <h2>
-    Player <%= player %> |
-    <%= if @state.dealer == player do %>
-      Dealer |
-    <% end %>
-    <%= if @state.trump_selector == player do %>
-      Chose Trump |
-    <% end %>
-    <%= if Enum.at(@state.play_order, @state.turn) == player do %>
-      Current Turn |
-    <% end %>
-    <%= if player_in_this_seat do %>
-      <%= player_in_this_seat %>
+  <div id="actions">
+    <span>Selecting Trump:</span>
+    <%= if Yooker.State.can_pass?(@state) and Yooker.Game.is_players_turn?(@game, @pid) do %>
+      <button phx-click="pass-trump">Pass</button>
     <% else %>
-      <%= if !Yooker.Game.player_has_assigned_seat?(@game, @pid) do %>
-        <button phx-click="claim-seat" phx-value-seat="<%= player %>">Claim Seat</button>
-      <% end %>
+      <button disabled="disabled">Pass</button>
     <% end %>
-  </h2>
 
-  <span>
-    Tricks Taken:
-    <%= length(Map.get(@state.tricks_taken, player)) %>
-  </span>
+    <%= if @state.current_round == :trump_select_round_one and Yooker.Game.is_players_turn?(@game, @pid) do %>
+      <button phx-click="choose-trump" phx-value-suit="">👆</button>
+    <% end %>
 
-  <div class="hand">
-      <%= for card <- hand do %>
-        <%= if player_in_this_seat == @pid do %>
-          <%= render "_card.html", card: card, game: @game, pid: @pid %>
-        <% else %>
-          <%= render "_card_facedown.html" %>
-        <% end %>
+    <%= if @state.current_round == :trump_select_round_two and Yooker.Game.is_players_turn?(@game, @pid) do %>
+      <button phx-click="choose-trump" phx-value-suit="♠">♠</button>
+      <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♦">♦</button>
+      <button phx-click="choose-trump" phx-value-suit="♣">♣</button>
+      <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♥">♥</button>
+    <% end %>
+
+    <span id="game-actions">Game Actions:</span>
+    <%= if @state.current_round == :deal do %>
+      <button phx-click="deal">Deal</button>
+    <% else %>
+      <button disabled="disabled">Deal</button>
     <% end %>
   </div>
-<% end %>
 
-<br/>
+</div>
 
-<span>Selecting Trump:</span>
-<%= if Yooker.State.can_pass?(@state) and Yooker.Game.is_players_turn?(@game, @pid) do %>
-  <button phx-click="pass-trump">Pass</button>
-<% else %>
-  <button disabled="disabled">Pass</button>
-<% end %>
+<div id="game-container">
 
-<%= if @state.current_round == :trump_select_round_one and Yooker.Game.is_players_turn?(@game, @pid) do %>
-  <button phx-click="choose-trump" phx-value-suit="">👆</button>
-<% end %>
+    <h2>Kitty</h2>
+    <div class="hand">
+      <%= if Yooker.State.show_top_card?(@state) do %>
+        <%= render "_card.html", card: List.first(@state.kitty), game: @game, pid: @pid %>
+        <%= render "_card_facedown.html" %>
+        <%= render "_card_facedown.html" %>
+        <%= render "_card_facedown.html" %>
+      <% else %>
+        <%= for _card <- @state.kitty do %>
+          <%= render "_card_facedown.html" %>
+        <% end %>
+      <% end %>
+    </div>
 
-<%= if @state.current_round == :trump_select_round_two and Yooker.Game.is_players_turn?(@game, @pid) do %>
-  <button phx-click="choose-trump" phx-value-suit="♠">♠</button>
-  <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♦">♦</button>
-  <button phx-click="choose-trump" phx-value-suit="♣">♣</button>
-  <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♥">♥</button>
-<% end %>
 
-<br/>
 
-<span>Game Actions:</span>
-<%= if @state.current_round == :deal do %>
-  <button phx-click="deal">Deal</button>
-<% else %>
-  <button disabled="disabled">Deal</button>
-<% end %>
+
+
+    <h2>Table</h2>
+    <%= for {player, card} <- @state.table do %>
+      <p>
+        Player <%= player %>
+        <%= if card do %>
+          <%= render "_card.html", card: card, game: @game %>
+        <% end %>
+      </p>
+    <% end %>
+
+
+
+
+    <%= for {player, hand} <- @state.player_hands do %>
+      <% player_in_this_seat = Map.get(@game.player_assignments, player) %>
+
+      <h2>
+        Player <%= player %> |
+        <%= if @state.dealer == player do %>
+          Dealer |
+        <% end %>
+        <%= if @state.trump_selector == player do %>
+          Chose Trump |
+        <% end %>
+        <%= if Enum.at(@state.play_order, @state.turn) == player do %>
+          Current Turn |
+        <% end %>
+        <%= if player_in_this_seat do %>
+          <%= player_in_this_seat %>
+        <% else %>
+          <%= if !Yooker.Game.player_has_assigned_seat?(@game, @pid) do %>
+            <button phx-click="claim-seat" phx-value-seat="<%= player %>">Claim Seat</button>
+          <% end %>
+        <% end %>
+      </h2>
+
+      <span>
+        Tricks Taken:
+        <%= length(Map.get(@state.tricks_taken, player)) %>
+      </span>
+
+      <div class="hand">
+          <%= for card <- hand do %>
+            <%= if player_in_this_seat == @pid do %>
+              <%= render "_card.html", card: card, game: @game, pid: @pid %>
+            <% else %>
+              <%= render "_card_facedown.html" %>
+            <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <br/>
+
+</div>
+
 
 <h2>Debug:</h2>
 <%= inspect(@game) %>
