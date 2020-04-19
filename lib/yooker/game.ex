@@ -14,7 +14,7 @@ defmodule Yooker.Game do
 
   def start_link(options) do
     # Start with a random dealer
-    dealer = Enum.random([:a, :b,:c, :d])
+    dealer = Enum.random([:a, :b, :c, :d])
     GenServer.start_link(__MODULE__, %Game{state: %State{dealer: dealer}}, options)
   end
 

@@ -66,11 +66,16 @@ defmodule Yooker.State do
 
     {kitty, _remaining} = List.pop_at(hands, 0)
 
-
     after_dealer = Enum.at(get_next_hand_order(dealer), 1)
     play_order = get_next_hand_order(after_dealer)
 
-    %{state | player_hands: player_hands, kitty: kitty, play_order: play_order, current_round: :trump_select_round_one}
+    %{
+      state
+      | player_hands: player_hands,
+        kitty: kitty,
+        play_order: play_order,
+        current_round: :trump_select_round_one
+    }
   end
 
   # Moves to next player, and also checks if we need to move to round 2 selection (when card is placed
