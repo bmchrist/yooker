@@ -42,7 +42,8 @@ defmodule Yooker.MixProject do
       {:phoenix_live_view, "~> 0.11.1"},
       # For Phoenix.LiveViewTest
       {:floki, "~> 0.26.0"},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:credo, "~> 1.2", only: [:dev, :test], runtime: false}
     ]
   end
 end
