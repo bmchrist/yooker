@@ -41,7 +41,8 @@ defmodule Yooker.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:phoenix_live_view, "~> 0.11.1"},
       # For Phoenix.LiveViewTest
-      {:floki, "~> 0.26.0"}
+      {:floki, "~> 0.26.0"},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
 end
