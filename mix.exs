@@ -40,7 +40,8 @@ defmodule Yooker.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:phoenix_live_view, "~> 0.11.1"},
-      {:floki, "~> 0.26.0"} # For Phoenix.LiveViewTest
+      # For Phoenix.LiveViewTest
+      {:floki, "~> 0.26.0"}
     ]
   end
 end

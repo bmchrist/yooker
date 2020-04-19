@@ -6,10 +6,11 @@ defmodule Yooker.Game do
   alias Yooker.State
 
   defstruct state: %State{},
-    player_assignments: %{a: nil, b: nil, c: nil, d: nil}
+            player_assignments: %{a: nil, b: nil, c: nil, d: nil}
 
   use GenServer, restart: :transient
-  @timeout 6_000_000 # Times out if no interaction for 100 minutes
+  # Times out if no interaction for 100 minutes
+  @timeout 6_000_000
 
   def start_link(options) do
     GenServer.start_link(__MODULE__, %Game{}, options)
@@ -37,7 +38,8 @@ defmodule Yooker.Game do
   # TODO - calling these just implementation of the interface but then doing actual logic in them feels a bit weird..
   @impl GenServer
   def handle_cast({:claim_seat, seat, pid}, %Game{player_assignments: player_assignments} = game) do
-    seat_atom = String.to_existing_atom(seat) # Atom for a,b,c,d should all already exist
+    # Atom for a,b,c,d should all already exist
+    seat_atom = String.to_existing_atom(seat)
     {:noreply, %{game | player_assignments: %{player_assignments | seat_atom => pid}}, @timeout}
   end
 
@@ -78,20 +80,22 @@ defmodule Yooker.Game do
       new_state = State.play_card(state, card)
 
       # Doing this second function based on if statement feels a bit like a code smell... tbd -- TODO review
-      new_state = if new_state.current_round == :scoring do
-        State.score_trick(new_state)
-      else
-        new_state
-      end
+      new_state =
+        if new_state.current_round == :scoring do
+          State.score_trick(new_state)
+        else
+          new_state
+        end
 
       # TODO improve this
       # Also TODO - improve this comment - what specifically needs to be improved?
       # Perhaps this whole concept of the controller-thing tracking this stuff - feels suboptimal
-      new_state = if length(List.flatten(Map.values(new_state.tricks_taken))) == 5 do
-        State.score_hand(new_state)
-      else
-        new_state
-      end
+      new_state =
+        if length(List.flatten(Map.values(new_state.tricks_taken))) == 5 do
+          State.score_hand(new_state)
+        else
+          new_state
+        end
 
       {:noreply, %{game | state: new_state}, @timeout}
     else
