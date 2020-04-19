@@ -6,7 +6,6 @@ defmodule Yooker.State do
   defstruct kitty: [],
             player_hands: %{a: [], b: [], c: [], d: []},
             trump: nil,
-            # todo - better name - TODO - can you add validators?
             current_round: :deal,
             table: %{a: nil, b: nil, c: nil, d: nil},
             tricks_taken: %{a: [], b: [], c: [], d: []},
@@ -46,7 +45,7 @@ defmodule Yooker.State do
 
   # Currently not dealing according to proper euchre rules.. eg 3 2 3 2
   # TODO(bmchrist): Follow Euchre rules :)
-  def deal(%State{} = state) do
+  def deal(%State{dealer: dealer} = state) do
     deck = Enum.shuffle(@deck)
 
     hands = Enum.chunk_every(deck, 5)
@@ -66,7 +65,12 @@ defmodule Yooker.State do
     player_hands = %{player_hands | d: player_hand}
 
     {kitty, _remaining} = List.pop_at(hands, 0)
-    %{state | player_hands: player_hands, kitty: kitty, current_round: :trump_select_round_one}
+
+
+    after_dealer = Enum.at(get_next_hand_order(dealer), 1)
+    play_order = get_next_hand_order(after_dealer)
+
+    %{state | player_hands: player_hands, kitty: kitty, play_order: play_order, current_round: :trump_select_round_one}
   end
 
   # Moves to next player, and also checks if we need to move to round 2 selection (when card is placed

@@ -13,7 +13,9 @@ defmodule Yooker.Game do
   @timeout 6_000_000
 
   def start_link(options) do
-    GenServer.start_link(__MODULE__, %Game{}, options)
+    # Start with a random dealer
+    dealer = Enum.random([:a, :b,:c, :d])
+    GenServer.start_link(__MODULE__, %Game{state: %State{dealer: dealer}}, options)
   end
 
   @impl GenServer
