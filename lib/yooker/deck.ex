@@ -43,7 +43,7 @@ defmodule Yooker.Deck do
   """
   @spec new() :: t
   def new do
-    for suit <- Card.suits(), value <- Card.values(), do: %Card{suit: suit, value: value}
+    for suit <- Card.Suit.all(), value <- Card.Value.all(), do: %Card{suit: suit, value: value}
   end
 
   @doc ~S"""
@@ -125,4 +125,3 @@ defmodule Yooker.Deck do
   @spec take(t, integer) :: {cards :: t, deck :: t}
   defdelegate take(deck, num), to: Enum, as: :split
 end
-

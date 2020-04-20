@@ -1,6 +1,9 @@
 defmodule YookerWeb.GameLive do
   use Phoenix.LiveView
+
+  alias Yooker.Card
   alias Yooker.Game
+
   require Logger
 
   def render(assigns) do
@@ -113,6 +116,13 @@ defmodule YookerWeb.GameLive do
         %{"suit" => suit},
         %{assigns: %{name: name, pid: pid}} = socket
       ) do
+    suit =
+      if suit != "" do
+        Card.Suit.from_string(suit)
+      else
+        suit
+      end
+
     :ok = GenServer.cast(via_tuple(name), {:choose_trump, suit, pid})
     :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game-" <> name, :update)
     {:noreply, assign_game(socket)}
@@ -125,6 +135,7 @@ defmodule YookerWeb.GameLive do
   end
 
   def handle_event("play-card", %{"card" => card}, %{assigns: %{name: name, pid: pid}} = socket) do
+    card = Card.from_string(card)
     :ok = GenServer.cast(via_tuple(name), {:play_card, card, pid})
     :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game-" <> name, :update)
     {:noreply, assign_game(socket)}
