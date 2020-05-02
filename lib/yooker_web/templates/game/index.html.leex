@@ -1,51 +1,14 @@
-<div id="top-bar">
-  <h1 id="app-name">Yooker</h1>
-  <h2 id="player-id">Your Player ID: <%= @pid %>
-</div>
 
-<div id="current-round">
-  <div id="round">
-    <span>Current Round:</span>
-    <span><%= @state.current_round %></span>
-  </div>
-
-  <div id="score">
-    Score AC: <%= @state.score[:ac] %> BD: <%= @state.score[:bd] %>
-  </div>
-
-  <div id="trump">Trump: <%= @state.trump %></div>
-
-  <div id="actions">
-    <span>Selecting Trump:</span>
-    <%= if Yooker.State.can_pass?(@state) and Yooker.Game.is_players_turn?(@game, @pid) do %>
-      <button phx-click="pass-trump">Pass</button>
-    <% else %>
-      <button disabled="disabled">Pass</button>
-    <% end %>
-
-    <%= if @state.current_round == :trump_select_round_one and Yooker.Game.is_players_turn?(@game, @pid) do %>
-      <button phx-click="choose-trump" phx-value-suit="">👆</button>
-    <% end %>
-
-    <%= if @state.current_round == :trump_select_round_two and Yooker.Game.is_players_turn?(@game, @pid) do %>
-      <button phx-click="choose-trump" phx-value-suit="♠">♠</button>
-      <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♦">♦</button>
-      <button phx-click="choose-trump" phx-value-suit="♣">♣</button>
-      <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♥">♥</button>
-    <% end %>
-
-    <span id="game-actions">Game Actions:</span>
-    <%= if @state.current_round == :deal do %>
-      <button phx-click="deal">Deal</button>
-    <% else %>
-      <button disabled="disabled">Deal</button>
-    <% end %>
-  </div>
-
-</div>
 
 <div class="game-grid">
   <% hands_layout = Yooker.Game.layout_for_pid(@game, @pid) %>
+
+  <div class="grid-top-bar">
+    <div id="top-bar">
+      <h1 id="app-name">Yooker</h1>
+      <h2 id="player-id">Your Player ID: <%= @pid %>
+    </div>
+  </div>
 
   <%= for {player, card} <- @state.table do %>
     <div class="grid-table grid-table-<%= Map.get(hands_layout, player) %>">
@@ -57,6 +20,33 @@
 
   <%= for {player, hand} <- @state.player_hands do %>
     <% player_in_this_seat = Map.get(@game.player_assignments, player) %>
+
+    <div class="grid-player-info grid-player-info-<%= Map.get(hands_layout, player) %>">
+      <span class="grid-player-info-name">
+        <%= if player_in_this_seat do %>
+          <%= player_in_this_seat %> |
+        <% else %>
+          <%= if !Yooker.Game.player_has_assigned_seat?(@game, @pid) do %>
+            <button phx-click="claim-seat" phx-value-seat="<%= player %>">Claim Seat</button>
+          <% end %>
+        <% end %>
+      </span>
+      <span>
+        <%= if @state.dealer == player do %>
+          Dealer |
+        <% end %>
+        <%= if @state.trump_selector == player do %>
+          Chose Trump |
+        <% end %>
+        <%= if Enum.at(@state.play_order, @state.turn) == player do %>
+          Current Turn |
+        <% end %>
+      </span>
+      <span>
+        Tricks Taken:
+        <%= length(Map.get(@state.tricks_taken, player)) %>
+      </span>
+    </div>
 
     <div class="grid-hand grid-hand-<%= Map.get(hands_layout, player) %>">
       <%= if player_in_this_seat == @pid do %>
@@ -70,59 +60,52 @@
       <% end %>
     </div>
   <% end %>
-</div>
 
-
-<div id="game-container">
-
-    <h2>Kitty</h2>
-    <div class="hand stacked">
-      <%= if Yooker.State.show_top_card?(@state) do %>
-        <%= render "_card_facedown.html" %>
-        <%= render "_card_facedown.html" %>
-        <%= render "_card_facedown.html" %>
-        <%= render "_card.html", card: List.first(@state.kitty), game: @game, pid: @pid %>
+  <div class="grid-game-actions">
+    <div class="select-trump">
+      <span>Selecting Trump:</span>
+      <%= if Yooker.State.can_pass?(@state) and Yooker.Game.is_players_turn?(@game, @pid) do %>
+        <button phx-click="pass-trump">Pass</button>
       <% else %>
-        <%= for _card <- @state.kitty do %>
-          <%= render "_card_facedown.html" %>
-        <% end %>
+        <button disabled="disabled">Pass</button>
+      <% end %>
+
+      <%= if @state.current_round == :trump_select_round_one and Yooker.Game.is_players_turn?(@game, @pid) do %>
+        <button phx-click="choose-trump" phx-value-suit="">👆</button>
+      <% end %>
+
+      <%= if @state.current_round == :trump_select_round_two and Yooker.Game.is_players_turn?(@game, @pid) do %>
+        <button phx-click="choose-trump" phx-value-suit="♠">♠</button>
+        <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♦">♦</button>
+        <button phx-click="choose-trump" phx-value-suit="♣">♣</button>
+        <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♥">♥</button>
       <% end %>
     </div>
 
-    <%= for {player, hand} <- @state.player_hands do %>
-      <% player_in_this_seat = Map.get(@game.player_assignments, player) %>
+    <div class="game-actions">
+      <span id="game-actions">Game Actions:</span>
+      <%= if @state.current_round == :deal do %>
+        <button phx-click="deal">Deal</button>
+      <% else %>
+        <button disabled="disabled">Deal</button>
+      <% end %>
+    </div>
+  </div>
 
-      <h2>
-        Player <%= player %> |
-        <%= if @state.dealer == player do %>
-          Dealer |
-        <% end %>
-        <%= if @state.trump_selector == player do %>
-          Chose Trump |
-        <% end %>
-        <%= if Enum.at(@state.play_order, @state.turn) == player do %>
-          Current Turn |
-        <% end %>
-        <%= if player_in_this_seat do %>
-          <%= player_in_this_seat %>
-        <% else %>
-          <%= if !Yooker.Game.player_has_assigned_seat?(@game, @pid) do %>
-            <button phx-click="claim-seat" phx-value-seat="<%= player %>">Claim Seat</button>
-          <% end %>
-        <% end %>
-      </h2>
-
-      <span>
-        Tricks Taken:
-        <%= length(Map.get(@state.tricks_taken, player)) %>
-      </span>
-
-    <% end %>
-
+  <div class="grid-game-info-left">
+    <div id="score">
+      Score AC: <%= @state.score[:ac] %> BD: <%= @state.score[:bd] %>
+    </div>
+  </div>
+  <div class="grid-game-info-right">
+      <div id="trump">Trump: <%= @state.trump %></div>
+  </div>
 </div>
 
 
 <h2>Debug:</h2>
+<span>Current Round:</span>
+<span><%= @state.current_round %></span>
 <%= inspect(@game) %>
 <br/>
 <button phx-click="reset-game">Reset Game</button>

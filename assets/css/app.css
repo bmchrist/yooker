@@ -1,57 +1,113 @@
 @import url('https://fonts.googleapis.com/css2?family=Kurale&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@400;700&display=swap');
 
+body, h1 {
+  margin:0px;
+  font-family: 'Baloo Paaji 2', cursive;
+}
+
 .game-grid {
   display: grid;
   /* Use FR instead for layout.. */
   /* also add spacing so cards are grouped near the center on big screens */
-  grid-template-columns: 150px 200px auto 200px 150px;
-  grid-template-rows: 160px 160px auto 160px 160px;
+  grid-template-columns: 100px 150px 200px auto 200px 150px 100px;
+  grid-template-rows: 48px 75px 160px 160px auto 160px 160px 75px;
   grid-template-areas:
-      ". top-hand top-hand top-hand ."
-      "left-hand . top-table . right-hand"
-      "left-hand left-table . right-table right-hand"
-      "left-hand . bottom-table . right-hand"
-      ". bottom-hand bottom-hand bottom-hand .";
+      "top-bar top-bar top-bar top-bar top-bar top-bar top-bar"
+      ". . top-player-info top-player-info top-player-info . ."
+      ". . top-hand top-hand top-hand . ."
+      "left-player-info left-hand . top-table . right-hand right-player-info"
+      "left-player-info left-hand left-table game-actions right-table right-hand right-player-info"
+      "left-player-info left-hand . bottom-table . right-hand right-player-info"
+      ". . bottom-hand bottom-hand bottom-hand . . "
+      "game-info-left game-info-left bottom-player-info bottom-player-info bottom-player-info game-info-right game-info-right"
 }
 
-.grid-hand, .grid-table {
+.grid-hand, .grid-table, .grid-player-info {
   text-align: center;
 }
 
-.grid-hand-bottom {
-  grid-area: bottom-hand;
-  background-color: red;
+.grid-top-bar {
+  grid-area: top-bar;
+}
+
+.grid-game-info-left {
+  grid-area: game-info-left;
+}
+.grid-game-info-right {
+  grid-area: game-info-right;
+}
+
+.grid-player-info-left {
+  grid-area: left-player-info;
+  background-color: lightgrey;
+  writing-mode: sideways-lr;
+}
+.grid-player-info-top {
+  grid-area: top-player-info;
+  background-color: lightgrey;
+}
+.grid-player-info-right {
+  grid-area: right-player-info;
+  background-color: lightgrey;
+  writing-mode: sideways-rl;
+}
+.grid-player-info-bottom {
+  grid-area: bottom-player-info;
+  background-color: lightgrey;
+}
+
+.grid-hand-left {
+  grid-area: left-hand;
+  background-color: blue;
 }
 .grid-hand-top {
   grid-area: top-hand;
   background-color: green;
 }
-.grid-hand-left {
-  grid-area: left-hand;
-  background-color: blue;
-}
 .grid-hand-right {
   grid-area: right-hand;
   background-color: yellow;
+}
+.grid-hand-bottom {
+  grid-area: bottom-hand;
+  background-color: red;
 }
 
 .grid-table-left {
   grid-area: left-table;
   background-color: lightblue;
 }
-.grid-table-top{
+.grid-table-top {
   grid-area: top-table;
   background-color: lightgreen;
 }
-.grid-table-right{
+.grid-table-right {
   grid-area: right-table;
   background-color: lightyellow;
 }
-.grid-table-bottom{
+.grid-table-bottom {
   grid-area: bottom-table;
   background-color: pink;
 }
+
+.grid-game-actions {
+  grid-area: game-actions;
+}
+
+.grid-kitty-left {
+  grid-area: discard-left;
+}
+.grid-kitty-top {
+  grid-area: discard-top;
+}
+.grid-kitty-right {
+  grid-area: discard-right;
+}
+.grid-kitty-bottom {
+  grid-area: discard-bottom;
+}
+
 
 /* stack cards */
 .grid-hand-top .card:first-child, .grid-hand-bottom .card:first-child{
@@ -67,11 +123,6 @@
   margin-top: -96px;
 }
 
-
-body, h1 {
-  margin:0px;
-  font-family: 'Baloo Paaji 2', cursive;
-}
 
 .card {
   display: inline-block;
@@ -105,15 +156,13 @@ body, h1 {
   line-height: 1;
 }
 
-/* end new styles */
-
-.top {
+.card-top {
   position: absolute;
   top:8px;
   left:8px;
 }
 
-.bottom {
+.card-bottom {
   position: absolute;
   bottom:8px;
   right:8px;
@@ -136,18 +185,13 @@ body, h1 {
   border-color: green;
 }
 
-#game-container{
-  padding: 24px;
-}
-
 #top-bar {
   display: flex;
-  height: 48px;
   background-color: #f2f2f2;
   align-items: center;
   flex-direction: row;
   justify-content: space-between;
-  margin-top: -16px;
+  height: 48px;
 }
 
 #app-name{
@@ -164,22 +208,6 @@ body, h1 {
   font-weight: 400;
 }
 
-#current-round{
-  display: flex;
-  border: 1px solid #dedede;
-  justify-content: space-between;
-  padding: 12px 24px 12px 24px;
-  align-items: center;
-}
-
-#game-actions{
-  margin-left: 16px;
-}
-
-.hand .card{
-  vertical-align: top;
-}
-
 button{
   background-color: #f2f2f2;
   padding: 4px 16px 4px 16px;
@@ -194,4 +222,3 @@ button{
 button:hover {
   background-color: #dedede;
 }
-
