@@ -361,6 +361,9 @@ defmodule Yooker.State do
 
   def show_top_card?(%State{current_round: :trump_select_round_one}), do: true
   def show_top_card?(%State{}), do: false
+  def selecting_trump?(%State{current_round: :trump_select_round_one}), do: true
+  def selecting_trump?(%State{current_round: :trump_select_round_two}), do: true
+  def selecting_trump?(%State{}), do: false
 
   # Allows someone to pass if it's the first round. Allows everyone except dealer to pass on the second
   def can_pass?(%State{current_round: :trump_select_round_one}), do: true

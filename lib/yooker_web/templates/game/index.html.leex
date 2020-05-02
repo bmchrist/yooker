@@ -61,35 +61,39 @@
     </div>
   <% end %>
 
-  <div class="grid-game-actions">
-    <div class="select-trump">
-      <span>Selecting Trump:</span>
-      <%= if Yooker.State.can_pass?(@state) and Yooker.Game.is_players_turn?(@game, @pid) do %>
-        <button phx-click="pass-trump">Pass</button>
-      <% else %>
-        <button disabled="disabled">Pass</button>
-      <% end %>
+  <div class="grid-game-center">
+    <%= if Yooker.State.selecting_trump?(@state) do %>
+      <div class="kitty">
+        <%= if Yooker.State.show_top_card?(@state) do %>
+          <%= render "_card.html", card: List.first(@state.kitty), game: @game, pid: @pid %>
+        <% else %>
+          <%= render "_card_facedown.html" %>
+        <% end %>
+      </div>
 
-      <%= if @state.current_round == :trump_select_round_one and Yooker.Game.is_players_turn?(@game, @pid) do %>
-        <button phx-click="choose-trump" phx-value-suit="">👆</button>
-      <% end %>
+      <div class="select-trump">
+        <%= if Yooker.State.can_pass?(@state) and Yooker.Game.is_players_turn?(@game, @pid) do %>
+          <button phx-click="pass-trump">Pass</button>
+        <% else %>
+          <button disabled="disabled">Pass</button>
+        <% end %>
 
-      <%= if @state.current_round == :trump_select_round_two and Yooker.Game.is_players_turn?(@game, @pid) do %>
-        <button phx-click="choose-trump" phx-value-suit="♠">♠</button>
-        <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♦">♦</button>
-        <button phx-click="choose-trump" phx-value-suit="♣">♣</button>
-        <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♥">♥</button>
-      <% end %>
-    </div>
+        <%= if @state.current_round == :trump_select_round_one and Yooker.Game.is_players_turn?(@game, @pid) do %>
+          <button phx-click="choose-trump" phx-value-suit="">👆</button>
+        <% end %>
 
-    <div class="game-actions">
-      <span id="game-actions">Game Actions:</span>
-      <%= if @state.current_round == :deal do %>
-        <button phx-click="deal">Deal</button>
-      <% else %>
-        <button disabled="disabled">Deal</button>
-      <% end %>
-    </div>
+        <%= if @state.current_round == :trump_select_round_two and Yooker.Game.is_players_turn?(@game, @pid) do %>
+          <button phx-click="choose-trump" phx-value-suit="♠">♠</button>
+          <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♦">♦</button>
+          <button phx-click="choose-trump" phx-value-suit="♣">♣</button>
+          <button class="text-suit-red" phx-click="choose-trump" phx-value-suit="♥">♥</button>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= if @state.current_round == :deal do %>
+      <button phx-click="deal">Deal</button>
+    <% end %>
   </div>
 
   <div class="grid-game-info-left">

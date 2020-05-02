@@ -23,7 +23,7 @@ body, h1 {
       "game-info-left game-info-left bottom-player-info bottom-player-info bottom-player-info game-info-right game-info-right"
 }
 
-.grid-hand, .grid-table, .grid-player-info {
+.grid-hand, .grid-table, .grid-player-info, .grid-game-center {
   text-align: center;
 }
 
@@ -91,23 +91,9 @@ body, h1 {
   background-color: pink;
 }
 
-.grid-game-actions {
+.grid-game-center {
   grid-area: game-actions;
 }
-
-.grid-kitty-left {
-  grid-area: discard-left;
-}
-.grid-kitty-top {
-  grid-area: discard-top;
-}
-.grid-kitty-right {
-  grid-area: discard-right;
-}
-.grid-kitty-bottom {
-  grid-area: discard-bottom;
-}
-
 
 /* stack cards */
 .grid-hand-top .card:first-child, .grid-hand-bottom .card:first-child{
@@ -213,12 +199,11 @@ button{
   padding: 4px 16px 4px 16px;
   border-radius: 3px;
   font-size: 16px;
-  cursor: pointer;
   font-family: 'Baloo Paaji 2', sans-serif;
   font-weight: 700;
   border: 1px solid #dedede;
 }
 
-button:hover {
+button:hover:enabled {
   background-color: #dedede;
 }
