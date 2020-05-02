@@ -1,6 +1,34 @@
 @import url('https://fonts.googleapis.com/css2?family=Kurale&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@400;700&display=swap');
 
+.game-grid {
+  display: grid;
+  /* Use FR instead for layout.. */
+  grid-template-columns: 150px auto 150px;
+  grid-template-rows: 200px auto 200px;
+  grid-template-areas:
+      ". top-hand ."
+      "left-hand table right-hand"
+      ". bottom-hand .";
+}
+
+.grid-hand-bottom {
+  grid-area: bottom-hand;
+  background-color: red;
+}
+.grid-hand-top {
+  grid-area: top-hand;
+  background-color: green;
+}
+.grid-hand-left {
+  grid-area: left-hand;
+  background-color: blue;
+}
+.grid-hand-right {
+  grid-area: right-hand;
+  background-color: yellow;
+}
+
 body, h1 {
   margin:0px;
   font-family: 'Baloo Paaji 2', cursive;
@@ -125,43 +153,4 @@ button{
 button:hover {
   background-color: #dedede;
 }
-
-.yours {
-  position: absolute;
-  width: 100%;
-  bottom: 0px;
-  background-color: #dedede;
-  display: flex;
-  justify-content: center;
-  padding: 24px;
-}
-
-.stacked {
-  display: flex;
-  position: relative;
-  height: 160px;
-  width: 216px;
-  display: inline-block;
-}
-
-.stacked > .card {
-  position: absolute;
-}
-
-.stacked .card:first-child {
-  left:0px;
-}
-.stacked .card:nth-of-type(2){
-  left:24px;
-}
-.stacked .card:nth-of-type(3){
-  left:48px;
-}
-.stacked .card:nth-of-type(4){
-  left:72px;
-}
-.stacked .card:nth-of-type(5){
-  left:96px;
-}
-
 
