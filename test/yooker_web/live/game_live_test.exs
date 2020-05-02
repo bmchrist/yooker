@@ -1,10 +1,11 @@
 defmodule YookerWeb.GameLiveTest do
-  use YookerWeb.ConnCase #figure out if this is needed
+  # figure out if this is needed
+  use YookerWeb.ConnCase
   import Phoenix.LiveViewTest
-	require Logger
+  require Logger
 
   setup do
-    {_result, %{redirect: %{to: route }}} = live(build_conn(), "/game?player=tester")
+    {_result, %{redirect: %{to: route}}} = live(build_conn(), "/game?player=tester")
     %{path: _path, query: query} = URI.parse(route)
     query_params = URI.query_decoder(query) |> Enum.into(%{})
 
@@ -19,6 +20,7 @@ defmodule YookerWeb.GameLiveTest do
 
   test "deals cards", %{via_tuple: via_tuple, view: _view} do
     GenServer.call(via_tuple, :game)
+
     # TODO doesn't actually check if we can deal cards - just ensures there's no errors during setup steps above right now
   end
 end

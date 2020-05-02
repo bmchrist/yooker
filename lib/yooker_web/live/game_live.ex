@@ -1,6 +1,9 @@
 defmodule YookerWeb.GameLive do
   use Phoenix.LiveView
+
+  alias Yooker.Card
   alias Yooker.Game
+
   require Logger
 
   def render(assigns) do
@@ -13,15 +16,17 @@ defmodule YookerWeb.GameLive do
       :ok = Phoenix.PubSub.subscribe(Yooker.PubSub, "game-" <> game_name)
       {:noreply, assign_game(socket, game_name, player)}
     else
-      {:noreply, socket |> put_flash(:error, "Could Not Find Game") |> push_redirect(
-        to: YookerWeb.Router.Helpers.live_path(socket, YookerWeb.LobbyLive)
-      )}
+      {:noreply,
+       socket
+       |> put_flash(:error, "Could Not Find Game")
+       |> push_redirect(to: YookerWeb.Router.Helpers.live_path(socket, YookerWeb.LobbyLive))}
     end
   end
 
   # Player creating a new game
   def handle_params(%{"player" => player} = _params, _url, socket) do
-		game_name = generate_name()
+    game_name = generate_name()
+
     # If this ends up generating a name that's already in use, it will fail. Could use Registry.lookup
     # and loop until it doesn't find a match, but complication isn't worth it at this time
 
@@ -34,10 +39,15 @@ defmodule YookerWeb.GameLive do
     # We push patch since we're using this same live view, just updating params
     # We could get rid of one redirect if we also assigned a player id here - but for now this is cleaner logic to deal with
     # Update params, which will trigger handle_params for game being present but no player
-    {:noreply, push_patch(
-      socket,
-      to: YookerWeb.Router.Helpers.live_path(socket, YookerWeb.GameLive, game: game_name, player: player)
-    )}
+    {:noreply,
+     push_patch(
+       socket,
+       to:
+         YookerWeb.Router.Helpers.live_path(socket, YookerWeb.GameLive,
+           game: game_name,
+           player: player
+         )
+     )}
   end
 
   # If for some reason they didn't pick a player name, we'll make one for them
@@ -45,19 +55,20 @@ defmodule YookerWeb.GameLive do
     player = generate_name()
 
     # We push patch since we're using this same live view, just updating params
-    {:noreply, push_patch(
-      socket,
-      to: YookerWeb.Router.Helpers.live_path(socket, YookerWeb.GameLive, player: player)
-    )}
+    {:noreply,
+     push_patch(
+       socket,
+       to: YookerWeb.Router.Helpers.live_path(socket, YookerWeb.GameLive, player: player)
+     )}
   end
 
   defp generate_name() do
     ?a..?z
-      |> Enum.take_random(6)
-      |> List.to_string()
+    |> Enum.take_random(6)
+    |> List.to_string()
   end
 
-	defp via_tuple(name) do
+  defp via_tuple(name) do
     {:via, Registry, {Yooker.GameRegistry, name}}
   end
 
@@ -100,7 +111,18 @@ defmodule YookerWeb.GameLive do
     {:noreply, assign_game(socket)}
   end
 
-  def handle_event("choose-trump", %{"suit" => suit}, %{assigns: %{name: name, pid: pid}} = socket) do
+  def handle_event(
+        "choose-trump",
+        %{"suit" => suit},
+        %{assigns: %{name: name, pid: pid}} = socket
+      ) do
+    suit =
+      if suit != "" do
+        Card.Suit.from_string(suit)
+      else
+        suit
+      end
+
     :ok = GenServer.cast(via_tuple(name), {:choose_trump, suit, pid})
     :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game-" <> name, :update)
     {:noreply, assign_game(socket)}
@@ -113,6 +135,7 @@ defmodule YookerWeb.GameLive do
   end
 
   def handle_event("play-card", %{"card" => card}, %{assigns: %{name: name, pid: pid}} = socket) do
+    card = Card.from_string(card)
     :ok = GenServer.cast(via_tuple(name), {:play_card, card, pid})
     :ok = Phoenix.PubSub.broadcast(Yooker.PubSub, "game-" <> name, :update)
     {:noreply, assign_game(socket)}
