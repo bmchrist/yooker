@@ -1,7 +1,9 @@
 defmodule Yooker.State do
-  require Logger
+  alias Yooker.Card
+  alias Yooker.Deck
+  alias __MODULE__, as: State
 
-  alias Yooker.State
+  require Logger
 
   defstruct kitty: [],
             player_hands: %{a: [], b: [], c: [], d: []},
@@ -16,66 +18,25 @@ defmodule Yooker.State do
             play_order: [:b, :c, :d, :a],
             turn: 0
 
-  @deck [
-    "9♠",
-    "10♠",
-    "J♠",
-    "Q♠",
-    "K♠",
-    "A♠",
-    "9♥",
-    "10♥",
-    "J♥",
-    "Q♥",
-    "K♥",
-    "A♥",
-    "9♣",
-    "10♣",
-    "J♣",
-    "Q♣",
-    "K♣",
-    "A♣",
-    "9♦",
-    "10♦",
-    "J♦",
-    "Q♦",
-    "K♦",
-    "A♦"
-  ]
+  @deal_order [3, 2, 3, 2, 2, 3, 2, 3]
 
-  # Currently not dealing according to proper euchre rules.. eg 3 2 3 2
-  # TODO(bmchrist): Follow Euchre rules :)
-  def deal(%State{dealer: dealer} = state) do
-    deck = Enum.shuffle(@deck)
+  def deal(%State{play_order: play_order, current_round: :deal, dealer: dealer} = state) do
+    deck =
+      Deck.new()
+      |> Deck.shuffle()
 
-    hands = Enum.chunk_every(deck, 5)
-
-    player_hands = %{a: [], b: [], c: [], d: []}
-
-    {player_hand, hands} = List.pop_at(hands, 0)
-    player_hands = %{player_hands | a: player_hand}
-
-    {player_hand, hands} = List.pop_at(hands, 0)
-    player_hands = %{player_hands | b: player_hand}
-
-    {player_hand, hands} = List.pop_at(hands, 0)
-    player_hands = %{player_hands | c: player_hand}
-
-    {player_hand, hands} = List.pop_at(hands, 0)
-    player_hands = %{player_hands | d: player_hand}
-
-    {kitty, _remaining} = List.pop_at(hands, 0)
+    {deck, player_hands, _} =
+      Enum.reduce(play_order ++ play_order, {deck, %{}, @deal_order}, fn player,
+                                                                         {deck, player_hands,
+                                                                          [num | deals]} ->
+        {cards, deck} = deck |> Deck.take(num)
+        {deck, Map.put(player_hands, player, (player_hands[player] || []) ++ cards), deals}
+      end)
 
     after_dealer = Enum.at(get_next_hand_order(dealer), 1)
-    play_order = get_next_hand_order(after_dealer)
+    new_play_order = get_next_hand_order(after_dealer)
 
-    %{
-      state
-      | player_hands: player_hands,
-        kitty: kitty,
-        play_order: play_order,
-        current_round: :trump_select_round_one
-    }
+    %{state | player_hands: player_hands, kitty: deck, current_round: :trump_select_round_one, play_order: new_play_order}
   end
 
   # Moves to next player, and also checks if we need to move to round 2 selection (when card is placed
@@ -133,7 +94,7 @@ defmodule Yooker.State do
       | turn: 0,
         trump_selector: current_turn_player(state),
         kitty: new_kitty,
-        trump: get_suit_of_card(top_card, nil),
+        trump: top_card.suit,
         player_hands: new_player_hands,
         current_round: :dealer_discard
     }
@@ -280,7 +241,7 @@ defmodule Yooker.State do
     # Card led by the first player is the leading suit
     first_player = Enum.at(play_order, 0)
 
-    suit_led = get_suit_of_card(table[first_player], trump)
+    suit_led = Card.trump_suit(table[first_player], trump)
 
     best_player =
       Enum.at(play_order, get_best_player_index(table, play_order, 0, 1, suit_led, trump))
@@ -345,40 +306,7 @@ defmodule Yooker.State do
   # Checks which card is the strongest - returns true if it's the first one
   # Assumes both cards are legal plays
   defp first_card_wins?(first_card, second_card, leading_suit, trump) do
-    get_score_for_card(first_card, leading_suit, trump) >
-      get_score_for_card(second_card, leading_suit, trump)
-  end
-
-  defp get_score_for_card(card, leading_suit, trump) do
-    # Get the value and suit for the card we want to score
-    # this handles the left bower on its own, get face value of suit
-    suit = get_suit_of_card(card, nil)
-    value = get_value_of_card(card)
-
-    # Trump Values (see multiplier below)
-    # JRight  11000
-    # JLeft   1100
-    # A       140
-    # K       130
-    # Q       120
-    # 10      100
-    # 9       90
-    #
-    # If it's the right bower, it's worth a lot
-    # If it's the left bower, it's worth a little less
-    # Otherwise if it's any trump, it's worth a premium on its face value
-    # Otherwise if it follows suit, it's worth its face value
-    # Otherwise it's worth 0 - did not follow suit
-    multiplier =
-      cond do
-        value == "J" and suit == trump -> 1000
-        value == "J" and suit == get_left_suit(trump) -> 100
-        suit == trump -> 10
-        suit == leading_suit -> 1
-        true -> 0
-      end
-
-    multiplier * face_value(value)
+    Card.score(first_card, leading_suit, trump) > Card.score(second_card, leading_suit, trump)
   end
 
   # If it is the current player's turn and they are allowed to play the card
@@ -401,19 +329,19 @@ defmodule Yooker.State do
       (
         suit_led =
           if turn > 0 do
-            get_suit_of_card(Map.get(table, Enum.at(play_order, 0)), trump)
+            Card.trump_suit(Map.get(table, Enum.at(play_order, 0)), trump)
           else
             nil
           end
 
-        suits_in_hand = for card <- allowed_hand, do: get_suit_of_card(card, trump)
+        suits_in_hand = for card <- allowed_hand, do: Card.trump_suit(card, trump)
 
         # Card follows suit?
         # The first card can be anything
         # If this card's suit matches the suit of the card of the first player
         # Or if the player cannot follow suit, they can play anything
         turn == 0 or
-          get_suit_of_card(card, trump) == suit_led or
+          Card.trump_suit(card, trump) == suit_led or
           !Enum.member?(suits_in_hand, suit_led)
       )
   end
@@ -424,11 +352,11 @@ defmodule Yooker.State do
           player_hands: player_hands,
           current_round: :dealer_discard
         },
-        card
+        %Card{} = card
       ) do
     # that card has to be part of the dealer's hand
-    allowed_hand = Map.get(player_hands, dealer)
-    Enum.member?(allowed_hand, card)
+    Map.get(player_hands, dealer)
+    |> Enum.member?(card)
   end
 
   def can_play_card?(%State{}, _card), do: false
@@ -455,33 +383,4 @@ defmodule Yooker.State do
   defp get_next_hand_order(:c), do: [:c, :d, :a, :b]
   defp get_next_hand_order(:d), do: [:d, :a, :b, :c]
   defp get_next_hand_order(_), do: raise("Unexpected first_player for play order")
-
-  # Returns the face value of the card
-  def get_value_of_card(card) do
-    String.split_at(card, -1) |> elem(0)
-  end
-
-  # Returns the suit of the card, returning the trump suit for the left bower
-  # Passing nil for trump will just use the suit on the face
-  def get_suit_of_card(card, trump) do
-    {value, suit} = String.split_at(card, -1)
-
-    if trump != nil and value == "J" and suit == get_left_suit(trump) do
-      trump
-    else
-      suit
-    end
-  end
-
-  defp get_left_suit("♠"), do: "♣"
-  defp get_left_suit("♣"), do: "♠"
-  defp get_left_suit("♥"), do: "♦"
-  defp get_left_suit("♦"), do: "♥"
-
-  defp face_value("A"), do: 14
-  defp face_value("K"), do: 13
-  defp face_value("Q"), do: 12
-  defp face_value("J"), do: 11
-  defp face_value("10"), do: 10
-  defp face_value("9"), do: 9
 end
