@@ -1,17 +1,64 @@
 defmodule Yooker.StateTest do
-  alias Yooker.State
   use ExUnit.Case
+
+  alias Yooker.Card
+  alias Yooker.State
+
   doctest Yooker.State
+
   require Logger
+
+  describe "deal/0" do
+    setup do
+      state = State.deal(%State{})
+      {:ok, state: state}
+    end
+
+    test "deals 5 cards to each player", %{state: state} do
+      Enum.each(state.player_hands, fn {_, hand} -> assert length(hand) == 5 end)
+    end
+
+    test "puts remainder of deck into kitty", %{state: state} do
+      assert length(state.kitty) == 4
+    end
+
+    test "advances round", %{state: state} do
+      assert :trump_select_round_one = state.current_round
+    end
+  end
 
   describe "can_play_card/2" do
     test "can only play cards from their own hand" do
       # all of these values can be randomized
       player_hands = %{
-        a: ["9♠", "Q♥", "A♠", "10♣", "K♦"],
-        b: ["10♥", "J♦", "A♥", "A♣", "9♣"],
-        c: ["J♣", "Q♠", "A♦", "9♥", "J♠"],
-        d: ["Q♦", "Q♣", "K♥", "10♦", "K♠"]
+        a: [
+          %Card{suit: :spades, value: :nine},
+          %Card{suit: :hearts, value: :queen},
+          %Card{suit: :spades, value: :ace},
+          %Card{suit: :clubs, value: :ten},
+          %Card{suit: :diamonds, value: :king}
+        ],
+        b: [
+          %Card{suit: :hearts, value: :ten},
+          %Card{suit: :diamonds, value: :jack},
+          %Card{suit: :hearts, value: :ace},
+          %Card{suit: :clubs, value: :ace},
+          %Card{suit: :clubs, value: :nine}
+        ],
+        c: [
+          %Card{suit: :clubs, value: :jack},
+          %Card{suit: :spades, value: :queen},
+          %Card{suit: :diamonds, value: :ace},
+          %Card{suit: :hearts, value: :nine},
+          %Card{suit: :spades, value: :jack}
+        ],
+        d: [
+          %Card{suit: :diamonds, value: :queen},
+          %Card{suit: :clubs, value: :queen},
+          %Card{suit: :hearts, value: :king},
+          %Card{suit: :diamonds, value: :ten},
+          %Card{suit: :spades, value: :king}
+        ]
       }
 
       turn = 0
@@ -39,10 +86,34 @@ defmodule Yooker.StateTest do
     test "can play any card if they lead" do
       # this can be randomized, as can deck
       player_hands = %{
-        a: ["9♠", "Q♥", "A♠", "10♣", "K♦"],
-        b: ["10♥", "J♦", "A♥", "A♣", "9♣"],
-        c: ["J♣", "Q♠", "A♦", "9♥", "J♠"],
-        d: ["Q♦", "Q♣", "K♥", "10♦", "K♠"]
+        a: [
+          %Card{suit: :spades, value: :nine},
+          %Card{suit: :hearts, value: :queen},
+          %Card{suit: :spades, value: :ace},
+          %Card{suit: :clubs, value: :ten},
+          %Card{suit: :diamonds, value: :king}
+        ],
+        b: [
+          %Card{suit: :hearts, value: :ten},
+          %Card{suit: :diamonds, value: :jack},
+          %Card{suit: :hearts, value: :ace},
+          %Card{suit: :clubs, value: :ace},
+          %Card{suit: :clubs, value: :nine}
+        ],
+        c: [
+          %Card{suit: :clubs, value: :jack},
+          %Card{suit: :spades, value: :queen},
+          %Card{suit: :diamonds, value: :ace},
+          %Card{suit: :hearts, value: :nine},
+          %Card{suit: :spades, value: :jack}
+        ],
+        d: [
+          %Card{suit: :diamonds, value: :queen},
+          %Card{suit: :clubs, value: :queen},
+          %Card{suit: :hearts, value: :king},
+          %Card{suit: :diamonds, value: :ten},
+          %Card{suit: :spades, value: :king}
+        ]
       }
 
       # first turn
@@ -64,14 +135,37 @@ defmodule Yooker.StateTest do
 
     test "must play a card that follows suit - if they have one - otherwise can play anything" do
       player_hands = %{
-        a: ["Q♥", "A♠", "9♠", "K♦"],
-        b: ["10♥", "Q♠", "A♥", "A♣", "9♣"],
-        c: ["J♣", "J♦", "A♦", "9♥", "J♠"],
-        d: ["Q♦", "Q♣", "K♥", "10♦", "K♠"]
+        a: [
+          %Card{suit: :hearts, value: :queen},
+          %Card{suit: :spades, value: :ace},
+          %Card{suit: :spades, value: :nine},
+          %Card{suit: :diamonds, value: :king}
+        ],
+        b: [
+          %Card{suit: :hearts, value: :ten},
+          %Card{suit: :spades, value: :queen},
+          %Card{suit: :hearts, value: :ace},
+          %Card{suit: :clubs, value: :ace},
+          %Card{suit: :clubs, value: :nine}
+        ],
+        c: [
+          %Card{suit: :clubs, value: :jack},
+          %Card{suit: :diamonds, value: :jack},
+          %Card{suit: :diamonds, value: :ace},
+          %Card{suit: :hearts, value: :nine},
+          %Card{suit: :spades, value: :jack}
+        ],
+        d: [
+          %Card{suit: :diamonds, value: :queen},
+          %Card{suit: :clubs, value: :queen},
+          %Card{suit: :hearts, value: :king},
+          %Card{suit: :diamonds, value: :ten},
+          %Card{suit: :spades, value: :king}
+        ]
       }
 
       table = %{
-        a: "10♣",
+        a: %Card{suit: :clubs, value: :ten},
         b: nil,
         c: nil,
         d: nil
@@ -89,32 +183,55 @@ defmodule Yooker.StateTest do
         play_order: play_order
       }
 
-      assert State.can_play_card?(state, "A♣") == true
-      assert State.can_play_card?(state, "9♣") == true
-      assert State.can_play_card?(state, "10♥") == false
-      assert State.can_play_card?(state, "Q♠") == false
-      assert State.can_play_card?(state, "A♥") == false
+      assert State.can_play_card?(state, %Card{suit: :clubs, value: :ace}) == true
+      assert State.can_play_card?(state, %Card{suit: :clubs, value: :nine}) == true
+      assert State.can_play_card?(state, %Card{suit: :hearts, value: :ten}) == false
+      assert State.can_play_card?(state, %Card{suit: :spades, value: :queen}) == false
+      assert State.can_play_card?(state, %Card{suit: :hearts, value: :ace}) == false
 
-      # Diamonds led instead, now nothing can be played
-      state = %{state | table: %{a: "K♦"}}
-      assert State.can_play_card?(state, "A♣") == true
-      assert State.can_play_card?(state, "9♣") == true
-      assert State.can_play_card?(state, "10♥") == true
-      assert State.can_play_card?(state, "Q♠") == true
-      assert State.can_play_card?(state, "A♥") == true
+      # Diamonds led instead, now anything can be played
+      state = %{state | table: %{a: %Card{suit: :diamonds, value: :king}}}
+      assert State.can_play_card?(state, %Card{suit: :clubs, value: :ace}) == true
+      assert State.can_play_card?(state, %Card{suit: :clubs, value: :nine}) == true
+      assert State.can_play_card?(state, %Card{suit: :hearts, value: :ten}) == true
+      assert State.can_play_card?(state, %Card{suit: :spades, value: :queen}) == true
+      assert State.can_play_card?(state, %Card{suit: :hearts, value: :ace}) == true
     end
 
     test "left bower is treated like trump suit for following" do
       player_hands = %{
-        a: ["Q♥", "J♦", "9♠", "K♦", "10♣"],
-        b: ["10♥", "A♥", "A♣", "9♣"],
-        c: ["J♣", "A♠", "A♦", "9♥", "J♠"],
-        d: ["Q♦", "Q♣", "K♥", "10♦", "K♠"]
+        a: [
+          %Card{suit: :hearts, value: :queen},
+          %Card{suit: :diamonds, value: :jack},
+          %Card{suit: :spades, value: :nine},
+          %Card{suit: :diamonds, value: :king},
+          %Card{suit: :clubs, value: :ten}
+        ],
+        b: [
+          %Card{suit: :hearts, value: :ten},
+          %Card{suit: :hearts, value: :ace},
+          %Card{suit: :clubs, value: :ace},
+          %Card{suit: :clubs, value: :nine}
+        ],
+        c: [
+          %Card{suit: :clubs, value: :jack},
+          %Card{suit: :spades, value: :ace},
+          %Card{suit: :diamonds, value: :ace},
+          %Card{suit: :hearts, value: :nine},
+          %Card{suit: :spades, value: :jack}
+        ],
+        d: [
+          %Card{suit: :diamonds, value: :queen},
+          %Card{suit: :clubs, value: :queen},
+          %Card{suit: :hearts, value: :king},
+          %Card{suit: :diamonds, value: :ten},
+          %Card{suit: :spades, value: :king}
+        ]
       }
 
       table = %{
         a: nil,
-        b: "Q♠",
+        b: %Card{suit: :spades, value: :queen},
         c: nil,
         d: nil
       }
@@ -126,16 +243,16 @@ defmodule Yooker.StateTest do
         player_hands: player_hands,
         current_round: :playing,
         turn: turn,
-        trump: "♠",
+        trump: :spades,
         table: table,
         play_order: play_order
       }
 
-      assert State.can_play_card?(state, "J♣") == true
-      assert State.can_play_card?(state, "A♠") == true
-      assert State.can_play_card?(state, "A♦") == false
-      assert State.can_play_card?(state, "9♥") == false
-      assert State.can_play_card?(state, "J♠") == true
+      assert State.can_play_card?(state, %Card{suit: :clubs, value: :jack}) == true
+      assert State.can_play_card?(state, %Card{suit: :spades, value: :ace}) == true
+      assert State.can_play_card?(state, %Card{suit: :diamonds, value: :ace}) == false
+      assert State.can_play_card?(state, %Card{suit: :hearts, value: :nine}) == false
+      assert State.can_play_card?(state, %Card{suit: :spades, value: :jack}) == true
     end
   end
 
@@ -143,12 +260,12 @@ defmodule Yooker.StateTest do
     test "low trump beats all other cards" do
       state = %State{
         table: %{
-          a: "A♠",
-          b: "9♥",
-          c: "A♦",
-          d: "9♣"
+          a: %Card{suit: :spades, value: :ace},
+          b: %Card{suit: :hearts, value: :nine},
+          c: %Card{suit: :diamonds, value: :ace},
+          d: %Card{suit: :clubs, value: :nine}
         },
-        trump: "♣",
+        trump: :clubs,
         play_order: [:a, :b, :c, :d]
       }
 
@@ -162,12 +279,12 @@ defmodule Yooker.StateTest do
     test "right bower beats higher face value trump" do
       state = %State{
         table: %{
-          a: "A♠",
-          b: "9♥",
-          c: "A♣",
-          d: "J♣"
+          a: %Card{suit: :spades, value: :ace},
+          b: %Card{suit: :hearts, value: :nine},
+          c: %Card{suit: :clubs, value: :ace},
+          d: %Card{suit: :clubs, value: :jack}
         },
-        trump: "♣",
+        trump: :clubs,
         play_order: [:a, :b, :c, :d]
       }
 
@@ -181,12 +298,12 @@ defmodule Yooker.StateTest do
     test "right bower beats left bower" do
       state = %State{
         table: %{
-          a: "A♠",
-          b: "J♥",
-          c: "J♣",
-          d: "A♣"
+          a: %Card{suit: :spades, value: :ace},
+          b: %Card{suit: :hearts, value: :jack},
+          c: %Card{suit: :clubs, value: :jack},
+          d: %Card{suit: :clubs, value: :ace}
         },
-        trump: "♣",
+        trump: :clubs,
         play_order: [:a, :b, :c, :d]
       }
 
@@ -200,12 +317,12 @@ defmodule Yooker.StateTest do
     test "left bower beats high trump" do
       state = %State{
         table: %{
-          a: "A♠",
-          b: "J♥",
-          c: "J♠",
-          d: "A♣"
+          a: %Card{suit: :spades, value: :ace},
+          b: %Card{suit: :hearts, value: :jack},
+          c: %Card{suit: :spades, value: :jack},
+          d: %Card{suit: :clubs, value: :ace}
         },
-        trump: "♣",
+        trump: :clubs,
         play_order: [:a, :b, :c, :d]
       }
 
@@ -219,12 +336,12 @@ defmodule Yooker.StateTest do
     test "low card led beats non trump" do
       state = %State{
         table: %{
-          a: "9♠",
-          b: "A♥",
-          c: "A♦",
-          d: "K♥"
+          a: %Card{suit: :spades, value: :nine},
+          b: %Card{suit: :hearts, value: :ace},
+          c: %Card{suit: :diamonds, value: :ace},
+          d: %Card{suit: :hearts, value: :king}
         },
-        trump: "♣",
+        trump: :clubs,
         play_order: [:a, :b, :c, :d]
       }
 
@@ -236,12 +353,12 @@ defmodule Yooker.StateTest do
 
       state = %State{
         table: %{
-          a: "A♥",
-          b: "9♠",
-          c: "A♦",
-          d: "K♥"
+          a: %Card{suit: :hearts, value: :ace},
+          b: %Card{suit: :spades, value: :nine},
+          c: %Card{suit: :diamonds, value: :ace},
+          d: %Card{suit: :hearts, value: :king}
         },
-        trump: "♣",
+        trump: :clubs,
         play_order: [:b, :c, :d, :a]
       }
 
