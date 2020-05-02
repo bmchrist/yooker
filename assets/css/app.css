@@ -15,7 +15,7 @@ body, h1 {
   padding: 8px;
   -webkit-box-shadow: 1px 1px 8px 2px rgba(0,0,0,0.1);
   -moz-box-shadow: 1px 1px 8px 2px rgba(0,0,0,0.1);
-  box-shadow: 1px 1px 8px 2px rgba(0,0,0,0.1); 
+  box-shadow: 1px 1px 8px 2px rgba(0,0,0,0.1);
   margin-right: 8px;
   margin-bottom: 8px;
   position: relative;
@@ -137,7 +137,7 @@ button:hover {
 }
 
 .stacked {
-  display: flex; */
+  display: flex;
   position: relative;
   height: 160px;
   width: 216px;
@@ -148,19 +148,19 @@ button:hover {
   position: absolute;
 }
 
-.stacked:first-child{
+.stacked .card:first-child {
   left:0px;
 }
-.stacked::nth-of-type(2){
+.stacked .card:nth-of-type(2){
   left:24px;
 }
-.stacked::nth-of-type(3){
+.stacked .card:nth-of-type(3){
   left:48px;
 }
-.stacked::nth-of-type(4){
+.stacked .card:nth-of-type(4){
   left:72px;
 }
-.stacked::nth-of-type(5){
+.stacked .card:nth-of-type(5){
   left:96px;
 }
 

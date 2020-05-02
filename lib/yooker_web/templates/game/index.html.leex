@@ -105,7 +105,11 @@
         <%= length(Map.get(@state.tricks_taken, player)) %>
       </span>
 
-      <div class="hand">
+      <%= if @pid == player_in_this_seat do %>
+        <div class="hand yours">
+      <% else %>
+        <div class="hand stacked">
+      <% end %>
           <%= for card <- hand do %>
             <%= if player_in_this_seat == @pid do %>
               <%= render "_card.html", card: card, game: @game, pid: @pid %>
