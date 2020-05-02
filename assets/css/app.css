@@ -4,12 +4,14 @@
 .game-grid {
   display: grid;
   /* Use FR instead for layout.. */
-  grid-template-columns: 150px auto 150px;
-  grid-template-rows: 200px auto 200px;
+  grid-template-columns: 150px 200px auto 200px 150px;
+  grid-template-rows: 200px 200px auto 200px 200px;
   grid-template-areas:
-      ". top-hand ."
-      "left-hand table right-hand"
-      ". bottom-hand .";
+      ". top-hand top-hand top-hand ."
+      "left-hand . top-table . right-hand"
+      "left-hand left-table . right-table right-hand"
+      "left-hand . bottom-table . right-hand"
+      ". bottom-hand bottom-hand bottom-hand .";
 }
 
 .grid-hand-bottom {
@@ -27,6 +29,23 @@
 .grid-hand-right {
   grid-area: right-hand;
   background-color: yellow;
+}
+
+.grid-table-left {
+  grid-area: left-table;
+  background-color: lightblue;
+}
+.grid-table-top{
+  grid-area: top-table;
+  background-color: lightgreen;
+}
+.grid-table-right{
+  grid-area: right-table;
+  background-color: lightyellow;
+}
+.grid-table-bottom{
+  grid-area: bottom-table;
+  background-color: pink;
 }
 
 body, h1 {
