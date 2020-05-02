@@ -113,7 +113,7 @@ defmodule Yooker.Game do
 
   def layout_for_pid(%Game{player_assignments: player_assignments}, pid) do
     player = player_assignments
-      |> Enum.find(fn {key, val} -> val == pid end)
+      |> Enum.find({nil}, fn {key, val} -> val == pid end)
       |> elem(0)
 
     layout_for_player(player)
@@ -124,4 +124,5 @@ defmodule Yooker.Game do
   defp layout_for_player(:b), do: %{b: :bottom, c: :left, d: :top, a: :right}
   defp layout_for_player(:c), do: %{c: :bottom, d: :left, a: :top, b: :right}
   defp layout_for_player(:d), do: %{d: :bottom, a: :left, b: :top, c: :right}
+  defp layout_for_player(_), do: %{a: :bottom, b: :left, c: :top, d: :right}
 end

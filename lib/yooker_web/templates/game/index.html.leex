@@ -48,7 +48,7 @@
   <% hands_layout = Yooker.Game.layout_for_pid(@game, @pid) %>
 
   <%= for {player, card} <- @state.table do %>
-    <div class="grid-table-<%= Map.get(hands_layout, player) %>">
+    <div class="grid-table grid-table-<%= Map.get(hands_layout, player) %>">
       <%= if card do %>
         <%= render "_card.html", card: card, game: @game %>
       <% end %>
@@ -58,7 +58,7 @@
   <%= for {player, hand} <- @state.player_hands do %>
     <% player_in_this_seat = Map.get(@game.player_assignments, player) %>
 
-    <div class="grid-hand-<%= Map.get(hands_layout, player) %>">
+    <div class="grid-hand grid-hand-<%= Map.get(hands_layout, player) %>">
       <%= if player_in_this_seat == @pid do %>
         <%= for card <- hand do %>
           <%= render "_card.html", card: card, game: @game, pid: @pid %>

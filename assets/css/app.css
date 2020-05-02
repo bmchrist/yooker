@@ -4,14 +4,19 @@
 .game-grid {
   display: grid;
   /* Use FR instead for layout.. */
+  /* also add spacing so cards are grouped near the center on big screens */
   grid-template-columns: 150px 200px auto 200px 150px;
-  grid-template-rows: 200px 200px auto 200px 200px;
+  grid-template-rows: 160px 160px auto 160px 160px;
   grid-template-areas:
       ". top-hand top-hand top-hand ."
       "left-hand . top-table . right-hand"
       "left-hand left-table . right-table right-hand"
       "left-hand . bottom-table . right-hand"
       ". bottom-hand bottom-hand bottom-hand .";
+}
+
+.grid-hand, .grid-table {
+  text-align: center;
 }
 
 .grid-hand-bottom {
@@ -47,6 +52,21 @@
   grid-area: bottom-table;
   background-color: pink;
 }
+
+/* stack cards */
+.grid-hand-top .card:first-child, .grid-hand-bottom .card:first-child{
+  margin-left: 0;
+}
+.grid-hand-top .card, .grid-hand-bottom .card {
+  margin-left: -48px;
+}
+.grid-hand-right .card:first-child, .grid-hand-left .card:first-child {
+  margin-top: 0;
+}
+.grid-hand-right .card, .grid-hand-left .card {
+  margin-top: -96px;
+}
+
 
 body, h1 {
   margin:0px;
@@ -84,6 +104,8 @@ body, h1 {
   font-family: 'Kurale', serif;
   line-height: 1;
 }
+
+/* end new styles */
 
 .top {
   position: absolute;
