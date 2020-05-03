@@ -6,6 +6,86 @@ body, h1 {
   font-family: 'Baloo Paaji 2', cursive;
 }
 
+.game-grid {
+  display: grid;
+  justify-content: space-around;
+  grid-template-columns: auto 150px 200px auto 200px 150px auto;
+  grid-template-rows: 48px 75px 160px 160px auto 160px 160px 75px;
+  align-items: center;
+  justify-content: space-between;
+  grid-template-areas:
+      "top-bar top-bar top-bar top-bar top-bar top-bar top-bar"
+      ". . top-player-info top-player-info top-player-info . ."
+      ". . top-hand top-hand top-hand . ."
+      "left-player-info left-hand . top-table . right-hand right-player-info"
+      "left-player-info left-hand left-table game-actions right-table right-hand right-player-info"
+      "left-player-info left-hand . bottom-table . right-hand right-player-info"
+      ". . bottom-hand bottom-hand bottom-hand . . "
+      "game-info-left game-info-left bottom-player-info bottom-player-info bottom-player-info game-info-right game-info-right"
+}
+
+.grid-hand, .grid-table, .grid-player-info, .grid-game-center {
+  text-align: center;
+}
+
+.grid-top-bar {
+  grid-area: top-bar;
+}
+
+.grid-game-info-left {
+  grid-area: game-info-left;
+}
+.grid-game-info-right {
+  grid-area: game-info-right;
+}
+
+.grid-player-info-left {
+  grid-area: left-player-info;
+  writing-mode: sideways-lr;
+}
+.grid-player-info-top {
+  grid-area: top-player-info;
+}
+.grid-player-info-right {
+  grid-area: right-player-info;
+  writing-mode: sideways-rl;
+}
+.grid-player-info-bottom {
+  grid-area: bottom-player-info;
+}
+
+.grid-hand-left {
+  grid-area: left-hand;
+}
+.grid-hand-top {
+  grid-area: top-hand;
+}
+.grid-hand-right {
+  grid-area: right-hand;
+}
+.grid-hand-bottom {
+  grid-area: bottom-hand;
+}
+
+.grid-table-left {
+  grid-area: left-table;
+}
+.grid-table-top {
+  grid-area: top-table;
+}
+.grid-table-right {
+  grid-area: right-table;
+}
+.grid-table-bottom {
+  grid-area: bottom-table;
+}
+
+.grid-game-center {
+  grid-area: game-actions;
+}
+
+
+/* Cards */
 .card {
   display: inline-block;
   height: 128px;
@@ -15,10 +95,9 @@ body, h1 {
   padding: 8px;
   -webkit-box-shadow: 1px 1px 8px 2px rgba(0,0,0,0.1);
   -moz-box-shadow: 1px 1px 8px 2px rgba(0,0,0,0.1);
-  box-shadow: 1px 1px 8px 2px rgba(0,0,0,0.1); 
-  margin-right: 8px;
-  margin-bottom: 8px;
+  box-shadow: 1px 1px 8px 2px rgba(0,0,0,0.1);
   position: relative;
+  background-color: white;
 }
 
 .card-facedown {
@@ -37,17 +116,17 @@ body, h1 {
   line-height: 1;
 }
 
-.top {
+.card-top {
   position: absolute;
   top:8px;
   left:8px;
 }
 
-.bottom {
+.card-bottom {
   position: absolute;
   bottom:8px;
   right:8px;
-  transform: rotate(180deg) scaleX(-1);
+  transform: rotate(180deg);
 }
 
 .card-suit {
@@ -62,22 +141,42 @@ body, h1 {
   color: red;
 }
 
+/* Rotate left/right oriented cards */
+.grid-table-right .card, .grid-hand-right .card, .grid-table-left .card, .grid-hand-left .card {
+  transform: rotate(90deg);
+  margin-bottom: -20px;
+  margin-top: -20px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+/* End Rotation */
+
+/* stack cards */
+.grid-hand-top .card:first-child, .grid-hand-bottom .card:first-child{
+  margin-left: 0;
+}
+.grid-hand-top .card, .grid-hand-bottom .card {
+  margin-left: -48px;
+}
+.grid-hand-right .card:first-child, .grid-hand-left .card:first-child {
+  margin-top: -20px;
+}
+.grid-hand-right .card, .grid-hand-left .card {
+  margin-top: -116px;
+}
+
+
 .card.playable {
   border-color: green;
 }
 
-#game-container{
-  padding: 24px;
-}
-
 #top-bar {
   display: flex;
-  height: 48px;
   background-color: #f2f2f2;
   align-items: center;
   flex-direction: row;
   justify-content: space-between;
-  margin-top: -16px;
+  height: 48px;
 }
 
 #app-name{
@@ -94,33 +193,16 @@ body, h1 {
   font-weight: 400;
 }
 
-#current-round{
-  display: flex;
-  border: 1px solid #dedede;
-  justify-content: space-between;
-  padding: 12px 24px 12px 24px;
-  align-items: center;
-}
-
-#game-actions{
-  margin-left: 16px;
-}
-
-.hand .card{
-  vertical-align: top;
-}
-
 button{
   background-color: #f2f2f2;
   padding: 4px 16px 4px 16px;
   border-radius: 3px;
   font-size: 16px;
-  cursor: pointer;
   font-family: 'Baloo Paaji 2', sans-serif;
   font-weight: 700;
   border: 1px solid #dedede;
 }
 
-button:hover {
+button:hover:enabled {
   background-color: #dedede;
 }

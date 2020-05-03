@@ -5,10 +5,10 @@
 <% else %>
   <div class="card text-suit-<%= Yooker.Card.color(@card) %>">
 <% end %>
-  <span class="card-value top"><%= Yooker.Card.to_value_string(@card) %>
+  <span class="card-value card-top"><%= Yooker.Card.to_value_string(@card) %>
   </span>
   <span class="card-suit"><%= Yooker.Card.to_suit_string(@card) %>
   </span>
-  <span class="card-value bottom"><%= Yooker.Card.to_value_string(@card) %>
+  <span class="card-value card-bottom"><%= Yooker.Card.to_value_string(@card) %>
   </span>
 </div>
