@@ -22,26 +22,26 @@
     <% player_in_this_seat = Map.get(@game.player_assignments, player) %>
 
     <div class="grid-player-info grid-player-info-<%= Map.get(hands_layout, player) %>">
-      <span class="grid-player-info-name">
+        <%= if Enum.at(@state.play_order, @state.turn) == player do %>
+          <div class="ring-container">
+            <div class="circle"></div><div class="ringring"></div>
+          </div>
+        <% end %>
         <%= if player_in_this_seat do %>
-          <%= player_in_this_seat %> |
+          <span class="grid-player-info-name"><%= player_in_this_seat %></span>
         <% else %>
           <%= if !Yooker.Game.player_has_assigned_seat?(@game, @pid) do %>
-            <button phx-click="claim-seat" phx-value-seat="<%= player %>">Claim Seat</button>
+            <span class="grid-player-claim-seat"><button phx-click="claim-seat" phx-value-seat="<%= player %>">Claim Seat</button></span>
           <% end %>
         <% end %>
-      </span>
-      <span>
+      <span class="grid-player-meta-info">
         <%= if @state.dealer == player do %>
-          Dealer |
+          (Dealer)
         <% end %>
         <%= if @state.trump_selector == player do %>
           Chose Trump |
         <% end %>
-        <%= if Enum.at(@state.play_order, @state.turn) == player do %>
-          Current Turn |
-        <% end %>
-      </span>
+      </span><br>
       <span>
         Tricks Taken:
         <%= length(Map.get(@state.tricks_taken, player)) %>
@@ -98,11 +98,19 @@
 
   <div class="grid-game-info-left">
     <div id="score">
-      Score AC: <%= @state.score[:ac] %> BD: <%= @state.score[:bd] %>
+      <span class="game-info-label">Score</span> 
+      <div class="game-info-team-score>
+        <span class="game-info-team">AC:</span> 
+        <span class="game-info-score"><%= @state.score[:ac] %></span> 
+      </div>
+      <div class="game-info-team-score>
+        <span class="game-info-team">BD:</span> 
+        <span class="game-info-score"><%= @state.score[:bd] %></span>
+      </div>
     </div>
   </div>
   <div class="grid-game-info-right">
-      <div id="trump">Trump: <%= @state.trump %></div>
+      <div id="trump"><span class="game-info-label">Trump</span> <%= @state.trump %></div>
   </div>
 </div>
 
