@@ -179,7 +179,8 @@ defmodule Yooker.State do
         } = state
       ) do
     next_dealer = Enum.at(get_next_hand_order(dealer), 1)
-    play_order = get_next_hand_order(next_dealer)
+    next_lead = Enum.at(get_next_hand_order(dealer), 2)
+    play_order = get_next_hand_order(next_lead)
 
     # Score the hand
     # Count up tricks by team
