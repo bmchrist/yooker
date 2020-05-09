@@ -226,6 +226,7 @@ defmodule Yooker.State do
         dealer: next_dealer,
         play_order: play_order,
         current_round: :deal,
+        current_turn: Enum.at(play_order, 0),
         tricks_taken: %{a: [], b: [], c: [], d: []}
     }
   end
