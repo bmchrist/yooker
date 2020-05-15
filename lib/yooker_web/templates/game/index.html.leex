@@ -22,7 +22,7 @@
     <% player_in_this_seat = Map.get(@game.player_assignments, player) %>
 
     <div class="grid-player-info grid-player-info-<%= Map.get(hands_layout, player) %>">
-        <%= if Enum.at(@state.play_order, @state.turn) == player do %>
+        <%= if Yooker.Game.is_players_turn?(@game, player_in_this_seat) do %>
           <div class="ring-container">
             <div class="circle"></div><div class="ringring"></div>
           </div>
