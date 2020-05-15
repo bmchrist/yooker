@@ -98,13 +98,22 @@
 
   <div class="grid-game-info-left">
     <div id="score">
-      <span class="game-info-label">Score</span> 
-      <div class="game-info-team-score>
-        <span class="game-info-team">AC:</span> 
-        <span class="game-info-score"><%= @state.score[:ac] %></span> 
+      <span class="game-info-label">Score</span>
+      <div class="game-info-team-score">
+
+        <span class="game-info-team">
+          <%= Map.get(@game.player_assignments, :a) || "a" %>
+          and
+          <%= Map.get(@game.player_assignments, :c) || "c" %>
+        </span>
+        <span class="game-info-score"><%= @state.score[:ac] %></span>
       </div>
-      <div class="game-info-team-score>
-        <span class="game-info-team">BD:</span> 
+      <div class="game-info-team-score">
+        <span class="game-info-team">
+          <%= Map.get(@game.player_assignments, :b) || "b" %>
+          and
+          <%= Map.get(@game.player_assignments, :d) || "d" %>
+        </span>
         <span class="game-info-score"><%= @state.score[:bd] %></span>
       </div>
     </div>
