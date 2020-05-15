@@ -1,6 +1,4 @@
-
-
-<div class="game-grid">
+<div id="game-grid" class="game-grid">
   <% hands_layout = Yooker.Game.layout_for_pid(@game, @pid) %>
 
   <div class="grid-top-bar">
@@ -10,8 +8,20 @@
     </div>
   </div>
 
+  <div class="grid-last-trick-container">
+    <div class="grid-last-trick-container2">
+      <%= for {player, card} <- @state.last_trick do %>
+        <div class="grid-last-trick grid-last-trick-<%= Map.get(hands_layout, player) %>">
+          <%= if card do %>
+            <%= render "_card.html", card: card, game: @game %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
   <%= for {player, card} <- @state.table do %>
-    <div class="grid-table grid-table-<%= Map.get(hands_layout, player) %>">
+    <div class="grid-table" id="grid-table-<%= Map.get(hands_layout, player) %>">
       <%= if card do %>
         <%= render "_card.html", card: card, game: @game %>
       <% end %>
@@ -123,10 +133,11 @@
   </div>
 </div>
 
-
-<h2>Debug:</h2>
-<span>Current Round:</span>
-<span><%= @state.current_round %></span>
-<%= inspect(@game) %>
-<br/>
-<button phx-click="reset-game">Reset Game</button>
+<%= if false do %>
+  <h2>Debug:</h2>
+  <span>Current Round:</span>
+  <span><%= @state.current_round %></span>
+  <%= inspect(@game) %>
+  <br/>
+  <button phx-click="reset-game">Reset Game</button>
+<% end %>

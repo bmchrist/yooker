@@ -24,15 +24,40 @@ button{
   grid-template-areas:
       "top-bar top-bar top-bar top-bar top-bar top-bar top-bar"
       ". . top-player-info top-player-info top-player-info . ."
-      ". . top-hand top-hand top-hand . ."
+      "last-trick . top-hand top-hand top-hand . ."
       "left-player-info left-hand . top-table . right-hand right-player-info"
       "left-player-info left-hand left-table game-actions right-table right-hand right-player-info"
       "left-player-info left-hand . bottom-table . right-hand right-player-info"
       ". game-info-left bottom-hand bottom-hand bottom-hand game-info-right ."
-      ". . bottom-player-info bottom-player-info bottom-player-info . . "
+      ". . bottom-player-info bottom-player-info bottom-player-info . . ";
 }
 
-.grid-hand, .grid-table, .grid-player-info, .grid-game-center {
+.grid-last-trick-container {
+  grid-area: last-trick;
+}
+.grid-last-trick-container2 {
+  display: grid;
+  grid-template-areas:
+      ". top-last-trick ."
+      "left-last-trick . right-last-trick"
+      ". bottom-last-trick .";
+  transform: scale(.4);
+}
+.grid-last-trick-left {
+  grid-area: left-last-trick;
+}
+.grid-last-trick-right {
+  grid-area: right-last-trick;
+}
+.grid-last-trick-top {
+  grid-area: top-last-trick;
+}
+.grid-last-trick-bottom {
+  grid-area: bottom-last-trick;
+}
+
+
+.grid-hand, .grid-table, .grid-player-info, .grid-game-center, .grid-last-trick {
   text-align: center;
 }
 
@@ -86,16 +111,16 @@ button{
   grid-area: bottom-hand;
 }
 
-.grid-table-left {
+#grid-table-left {
   grid-area: left-table;
 }
-.grid-table-top {
+#grid-table-top {
   grid-area: top-table;
 }
-.grid-table-right {
+#grid-table-right {
   grid-area: right-table;
 }
-.grid-table-bottom {
+#grid-table-bottom {
   grid-area: bottom-table;
 }
 
@@ -165,7 +190,7 @@ button{
 }
 
 /* Rotate left/right oriented cards */
-.grid-table-right .card, .grid-hand-right .card, .grid-table-left .card, .grid-hand-left .card {
+#grid-table-right .card, .grid-hand-right .card, #grid-table-left .card, .grid-hand-left .card, .grid-last-trick-left .card, .grid-last-trick-right .card {
   transform: rotate(90deg);
   margin-bottom: -20px;
   margin-top: -20px;
@@ -203,7 +228,7 @@ button{
   justify-content: space-between;
   height: 48px;
 }
-/* 
+/*
 #logo-container {
   display: inline-block;
   width: 400px;
@@ -315,7 +340,7 @@ button:hover:enabled {
   left: 0px;
   top: 2px;
   -webkit-animation: pulsate 1s ease-out;
-  -webkit-animation-iteration-count: infinite; 
+  -webkit-animation-iteration-count: infinite;
   opacity: 0.0
 }
 @-webkit-keyframes pulsate {
