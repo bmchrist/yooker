@@ -17,6 +17,7 @@ defmodule Yooker.State do
             # TODO(bmchrist) randomize later
             dealer: :a,
             play_order: [:b, :c, :d, :a],
+            last_trick: %{a: nil, b: nil, c: nil, d: nil},
             turn: 0
 
   @deal_order [3, 2, 3, 2, 2, 3, 2, 3]
@@ -252,6 +253,7 @@ defmodule Yooker.State do
       | current_round: :playing,
         play_order: get_next_hand_order(best_player),
         tricks_taken: tricks_taken,
+        last_trick: table,
         turn: 0,
         table: %{a: nil, b: nil, c: nil, d: nil}
     }
