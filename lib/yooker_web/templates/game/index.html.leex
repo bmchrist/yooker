@@ -13,7 +13,7 @@
       <%= for {player, card} <- @state.last_trick do %>
         <div class="grid-last-trick grid-last-trick-<%= Map.get(hands_layout, player) %>">
           <%= if card do %>
-            <%= render "_card.html", card: card, game: @game %>
+            <%= render "_card.html", card: card, game: @game, pid: @pid %>
           <% end %>
         </div>
       <% end %>
@@ -23,7 +23,7 @@
   <%= for {player, card} <- @state.table do %>
     <div class="grid-table" id="grid-table-<%= Map.get(hands_layout, player) %>">
       <%= if card do %>
-        <%= render "_card.html", card: card, game: @game %>
+        <%= render "_card.html", card: card, game: @game, pid: @pid %>
       <% end %>
     </div>
   <% end %>
