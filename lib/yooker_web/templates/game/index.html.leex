@@ -13,7 +13,7 @@
   <%= for {player, card} <- @state.table do %>
     <div class="grid-table grid-table-<%= Map.get(hands_layout, player) %>">
       <%= if card do %>
-        <%= render "_card.html", card: card, game: @game %>
+        <%= render "_card.html", card: card, game: @game, pid: @pid %>
       <% end %>
     </div>
   <% end %>
