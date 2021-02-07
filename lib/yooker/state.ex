@@ -8,7 +8,6 @@ defmodule Yooker.State do
   defstruct kitty: [],
             player_hands: %{a: [], b: [], c: [], d: []},
             trump: nil,
-            # todo - better name - TODO - can you add validators?
             current_round: :deal,
             table: %{a: nil, b: nil, c: nil, d: nil},
             tricks_taken: %{a: [], b: [], c: [], d: []},
@@ -22,7 +21,7 @@ defmodule Yooker.State do
 
   @deal_order [3, 2, 3, 2, 2, 3, 2, 3]
 
-  def deal(%State{play_order: play_order, current_round: :deal} = state) do
+  def deal(%State{play_order: play_order, current_round: :deal, dealer: dealer} = state) do
     deck =
       Deck.new()
       |> Deck.shuffle()
@@ -35,7 +34,10 @@ defmodule Yooker.State do
         {deck, Map.put(player_hands, player, (player_hands[player] || []) ++ cards), deals}
       end)
 
-    %{state | player_hands: player_hands, kitty: deck, current_round: :trump_select_round_one}
+    after_dealer = Enum.at(get_next_hand_order(dealer), 1)
+    new_play_order = get_next_hand_order(after_dealer)
+
+    %{state | player_hands: player_hands, kitty: deck, current_round: :trump_select_round_one, play_order: new_play_order}
   end
 
   # Moves to next player, and also checks if we need to move to round 2 selection (when card is placed
